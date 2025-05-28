@@ -19,18 +19,23 @@
   }
   
   .shutterButton {
-    width: 70px; /* 셔터 버튼 크기 */
+    width: 70px;
     height: 70px;
-    background-color: #fff; /* 흰색 배경 */
-    border: 5px solid #ccc; /* 회색 테두리 */
-    border-radius: 50%; /* 완벽한 원형 */
+    background-color: #fff;
+    border: 5px solid #ccc;
+    border-radius: 50%;
     cursor: pointer;
-    position: absolute; /* 카메라 화면 위에 위치 */
-    bottom: 30px; /* 하단에서 약간 위로 */
-    /* left: 50%; transform: translateX(-50%); // 가운데 정렬 시 */
-    /* UI 이미지에서는 오른쪽에 치우쳐 있으니 right로 조정 */
-    right: 30px; 
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    position: absolute;
+  
+    /* 기존 아래쪽 위치 제거 */
+    /* bottom: 30px; */
+  
+    /* ✅ 새 위치: 오른쪽 중간 */
+    top: 50%;
+    right: 30px;
+    transform: translateY(-50%); /* 세로 중앙 정렬 */
+  
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     transition: background-color 0.2s ease, transform 0.1s ease;
   }
   
