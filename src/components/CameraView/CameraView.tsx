@@ -3,12 +3,10 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import styles from './CameraView.module.css';
 import LoadingSpinner from '../LoadingSpinner/LoadingSpinner';
-import { HistoryItem, LookAlikeResult, UploadResponse, MoodFrameToServer, MoodFrameFromServer } from '@/types';
+import { HistoryItem, LookAlikeResult, UploadResponse } from '@/types';
 import Image from 'next/image';
 import io, { Socket } from 'socket.io-client';
 import { API_BASE_URL } from '@/lib/constants';
-
-const FRAME_INTERVAL = 1000;
 
 const arrayBufferToBase64 = (buffer: ArrayBuffer) => {
   let binary = '';
@@ -29,8 +27,8 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const moodCanvasRef = useRef<HTMLCanvasElement>(null);
   const socketRef = useRef<Socket | null>(null);
-  const frameTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const [frameOrder, setFameOrder] = useState<number>(0);
+  const animationFrameRef = useRef<number | null>(null);
+  const frameOrderRef = useRef<number>(0);
 
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -45,8 +43,8 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
       socketRef.current.disconnect();
       socketRef.current = null;
     }
-    if (frameTimeoutRef.current) {
-      clearTimeout(frameTimeoutRef.current);
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
     }
   };
 
@@ -74,8 +72,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
 
   const sendFrameForMoodDetection = useCallback(() => {
     if (!videoRef.current || !moodCanvasRef.current || !socketRef.current || !socketRef.current.connected) {
-      if (frameTimeoutRef.current) clearTimeout(frameTimeoutRef.current);
-      frameTimeoutRef.current = setTimeout(sendFrameForMoodDetection, FRAME_INTERVAL);
+      animationFrameRef.current = requestAnimationFrame(sendFrameForMoodDetection);
       return;
     }
 
@@ -84,51 +81,47 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
     canvas.width = video.videoWidth / 4;
     canvas.height = video.videoHeight / 4;
     const context = canvas.getContext('2d');
-    if (!context) return;
+    if (!context) {
+      animationFrameRef.current = requestAnimationFrame(sendFrameForMoodDetection);
+      return;
+    }
 
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
     canvas.toBlob(async (blob) => {
       if (blob && socketRef.current && socketRef.current.connected) {
-        console.log(`Frame ${frameOrder} sent to server`);
+        const currentOrder = frameOrderRef.current++;
         const arrayBuffer = await blob.arrayBuffer();
-        const payload: MoodFrameToServer = {
-          order: `${frameOrder}`,
+        const payload = {
+          order: `${currentOrder.toString(16).padStart(4, '0')}`,
           data: arrayBuffer,
         };
-        socketRef.current.emit('frame', payload);
+        socketRef.current.emit('frame', payload, (processed: any) => {
+          const receivedBlob = new Blob([processed.data], { type: 'image/jpeg' });
+          const imageUrl = URL.createObjectURL(receivedBlob);
+          console.log(imageUrl)
+          setMoodImageSrc(imageUrl);
+        });
       }
-      if (frameTimeoutRef.current) clearTimeout(frameTimeoutRef.current);
-      frameTimeoutRef.current = setTimeout(sendFrameForMoodDetection, FRAME_INTERVAL);
+      animationFrameRef.current = requestAnimationFrame(sendFrameForMoodDetection);
     }, 'image/jpeg', 0.7);
   }, []);
 
   useEffect(() => {
     setupCamera();
 
-    const socketUrl = 'http://kgh1113.ddns.net';
-
-    socketRef.current = io("http://kgh1113.ddns.net:80/api/mood");
+    socketRef.current = io('http://kgh1113.ddns.net:80/api/mood');
 
     socketRef.current.on('connect', () => {
       console.log('Socket connected');
       if (isCameraReady) {
-        if (frameTimeoutRef.current) clearTimeout(frameTimeoutRef.current);
-        frameTimeoutRef.current = setTimeout(sendFrameForMoodDetection, FRAME_INTERVAL);
+        animationFrameRef.current = requestAnimationFrame(sendFrameForMoodDetection);
       }
     });
-
-    socketRef.current.on('frame', (data: MoodFrameFromServer) => {
-      const imageBase64 = arrayBufferToBase64(data.data);
-      setMoodImageSrc(`data:image/jpeg;base64,${imageBase64}`);
-    });
-
-    socketRef.current.on('disconnect', () => { });
 
     socketRef.current.on('connect_error', (err) => {
       console.error('Socket connection error:', err);
       setError("서버 연결 실패");
     });
-
     return () => {
       if (videoRef.current && videoRef.current.srcObject) {
         const stream = videoRef.current.srcObject as MediaStream;
@@ -140,8 +133,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
 
   useEffect(() => {
     if (isCameraReady && socketRef.current?.connected) {
-      if (frameTimeoutRef.current) clearTimeout(frameTimeoutRef.current);
-      frameTimeoutRef.current = setTimeout(sendFrameForMoodDetection, FRAME_INTERVAL);
+      animationFrameRef.current = requestAnimationFrame(sendFrameForMoodDetection);
     }
   }, [isCameraReady, sendFrameForMoodDetection]);
 
@@ -226,7 +218,6 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
   if (error && !isLoading) {
     return <div className={styles.errorMessage}>{error}</div>;
   }
-
   return (
     <div className={styles.cameraContainer}>
       {isLoading && <LoadingSpinner />}
