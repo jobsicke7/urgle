@@ -103,13 +103,22 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
     }, 'image/jpeg', 0.7);
   }, []);
 
-
   useEffect(() => {
     setupCamera();
     
-    socketRef.current = io(`${API_BASE_URL}/api/mood`);
+    // Socket.IO 연결 - 프로덕션에서는 프록시된 경로 사용
+    const socketUrl = process.env.NODE_ENV === 'production' 
+      ? window.location.origin  // 현재 도메인 사용 (https://your-app.vercel.app)
+      : 'http://kgh1113.ddns.net'; // 개발환경에서는 직접 연결
+      
+    socketRef.current = io(socketUrl, {
+      path: '/socket.io/',
+      transports: ['polling', 'websocket'],
+      forceNew: true
+    });
 
     socketRef.current.on('connect', () => {
+      console.log('Socket connected');
       if (isCameraReady) {
          if (frameTimeoutRef.current) clearTimeout(frameTimeoutRef.current);
          frameTimeoutRef.current = setTimeout(sendFrameForMoodDetection, FRAME_INTERVAL);
@@ -143,7 +152,6 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
       frameTimeoutRef.current = setTimeout(sendFrameForMoodDetection, FRAME_INTERVAL);
     }
   }, [isCameraReady, sendFrameForMoodDetection]);
-
 
   const handleTakePhoto = useCallback(async () => {
     if (!videoRef.current || !canvasRef.current || !isCameraReady) {
