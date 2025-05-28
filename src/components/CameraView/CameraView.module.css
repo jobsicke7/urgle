@@ -1,94 +1,99 @@
-/* components/CameraView/CameraView.module.css */
 .cameraContainer {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center; /* 내용이 적을 때 중앙 정렬 */
-    background-color: #e0e0e0;
-    border-radius: 8px;
-    position: relative;
-    min-height: 400px;
-    overflow: hidden;
-    padding: 10px; /* 내부 여백 추가 */
-  }
-  
-  .videoWrapper {
-    width: 100%;
-    max-width: 640px; /* 비디오 최대 너비 제한 */
-    aspect-ratio: 4 / 3; /* 비디오 비율 유지 */
-    background-color: #000; /* 비디오 로딩 전 검은 배경 */
-    border-radius: 6px;
-    overflow: hidden;
-    position: relative; /* preparationMessage 위치 기준 */
-    margin-bottom: 10px;
-  }
-  
-  .videoFeed {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  
-  .shutterButton {
-    width: 70px;
-    height: 70px;
-    background-color: #fff;
-    border: 5px solid #ccc;
-    border-radius: 50%;
-    cursor: pointer;
-    /* position: absolute;
-    bottom: 30px;
-    right: 30px; */
-    margin-top: 15px; /* 비디오/감정분석 영역과의 간격 */
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    transition: background-color 0.2s ease, transform 0.1s ease;
-  }
-  
-  .shutterButton:hover {
-    background-color: #f0f0f0;
-  }
-  .shutterButton:active {
-    transform: scale(0.95);
-  }
-  
-  .errorMessage, .preparationMessage {
-    padding: 20px;
-    text-align: center;
-    font-size: 1.1em;
-    color: #555;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: absolute; /* videoWrapper 내부에 절대 위치 */
-    top: 0;
-    left: 0;
-    background-color: rgba(200,200,200,0.9); /* 글자가 잘보이도록 */
-    border-radius: 6px;
-  }
-  .errorMessage {
-    color: #D8000C;
-    background-color: #FFD2D2;
-    border: 1px solid #D8000C;
-  }
-  
-  .moodDisplay {
-    margin-top: 15px;
-    padding: 10px;
-    background-color: rgba(255,255,255,0.8);
-    border-radius: 6px;
-    text-align: center;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  }
-  .moodDisplay p {
-    margin: 0 0 5px 0;
-    font-size: 0.9em;
-    color: #333;
-    font-weight: 500;
-  }
-  .moodImage {
-    border-radius: 4px;
-    border: 1px solid #ccc;
-  }
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: #e0e0e0;
+  border-radius: 8px;
+  position: relative;
+  min-height: 400px;
+  overflow: hidden;
+}
+
+.videoWrapper {
+  flex: 1;
+  width: 100%;
+  background-color: #000;
+  border-radius: 8px 8px 0 0;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.videoFeed {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.shutterButton {
+  width: 70px;
+  height: 70px;
+  background-color: #fff;
+  border: 5px solid #ccc;
+  border-radius: 50%;
+  cursor: pointer;
+  position: absolute;
+  bottom: 30px;
+  right: 30px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  z-index: 5;
+}
+
+.shutterButton:hover {
+  background-color: #f0f0f0;
+}
+
+.shutterButton:active {
+  transform: scale(0.95);
+}
+
+.errorMessage,
+.preparationMessage {
+  padding: 20px;
+  text-align: center;
+  font-size: 1.1em;
+  color: #555;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: rgba(200, 200, 200, 0.9);
+  border-radius: 8px;
+}
+
+.errorMessage {
+  color: #D8000C;
+  background-color: #FFD2D2;
+  border: 1px solid #D8000C;
+}
+
+.moodDisplay {
+  position: absolute;
+  bottom: 30px;
+  left: 30px;
+  padding: 10px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(5px);
+}
+
+.moodDisplay p {
+  margin: 0 0 5px 0;
+  font-size: 0.9em;
+  color: #333;
+  font-weight: 500;
+}
+
+.moodImage {
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}

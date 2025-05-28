@@ -34,7 +34,7 @@ const ResultPopup: React.FC<ResultPopupProps> = ({ capturedImage, result, onClos
               className={styles.celebrityImage}
               unoptimized={result.resultImgUrl.startsWith('http') ? false : true}
             />
-            <p className={styles.resultTextHighlight}>✨ {result.alike} ✨</p>
+            <p className={styles.resultTextHighlight}>{result.alike}</p>
             <p className={styles.percentage}>닮은 확률: {result.percentage?.toFixed(1)}%</p>
             <p className={styles.subText}>당신은 {result.alike}와(과) 닮았네요!</p>
           </div>

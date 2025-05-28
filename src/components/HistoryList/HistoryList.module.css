@@ -1,88 +1,201 @@
-/* components/HistoryList/HistoryList.module.css */
 .historyContainer {
-    padding: 20px;
-    background-color: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    width: 350px; /* 너비를 살짝 늘렸습니다. */
-    height: calc(100vh - 100px);
-    overflow-y: auto;
-  }
-  
-  .title {
-    font-size: 1.8em;
-    color: #333;
-    margin-top: 0;
-    margin-bottom: 20px;
-    font-weight: 600;
-  }
-  
-  .list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-  
-  .listItem {
-    display: flex;
-    align-items: center;
-    margin-bottom: 15px;
-    padding: 10px;
-    border: 1px solid #e0e0e0;
-    border-radius: 6px;
-    background-color: #f9f9f9;
-    gap: 10px; /* 아이템 간 간격 */
-  }
-  
-  .imageWrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    font-size: 0.7rem;
-    color: #555;
-  }
-  
-  .historyImage {
-    border-radius: 4px;
-    object-fit: cover;
-  }
-  
-  .imageLabel {
-    margin-top: 3px;
-  }
-  
-  .arrow {
-    font-size: 1.5em;
-    color: #555;
-  }
-  
-  .info {
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-    margin-left: 5px;
-  }
-  
-  .celebrityName {
-    font-size: 1em;
-    color: #333;
-    font-weight: 500;
-  }
-  
-  .percentage {
-    font-size: 0.9em;
-    color: #5b9bd5;
-    font-weight: bold;
-  }
-  
-  .date {
-    font-size: 0.8em;
-    color: #777;
-    margin-top: 4px;
-  }
-  
-  .emptyMessage {
-    color: #777;
-    text-align: center;
-    padding: 20px 0;
-  }
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 350px;
+  height: calc(100vh - 100px);
+  overflow-y: auto;
+}
+
+.title {
+  font-size: 1.8em;
+  color: #333;
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-weight: 800;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Styles for NON-LATEST items primarily */
+.listItem {
+  display: flex;
+  justify-content: space-between;
+  /* MODIFIED: Distributes children (Image1, Image2, InfoGroup) */
+  align-items: center;
+  margin-bottom: 15px;
+  padding: 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background-color: #f9f9f9;
+  /* gap: 10px; /* REMOVED: space-between handles main group spacing. */
+  transition: all 0.3s ease;
+}
+
+/* --- Styles for the LATEST item (Preserved from previous state with minor adjustments) --- */
+.listItem.latest {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  border: 2px solid #5b9bd5;
+  background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
+  box-shadow: 0 4px 12px rgba(91, 155, 213, 0.2);
+  transform: scale(1.02);
+  /* MODIFIED: Restored from user's original CSS */
+  margin-bottom: 40px;
+}
+
+.latestImageRow {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 20px;
+  gap: 10px;
+}
+
+.latestImageContainer {
+  width: 120px;
+  height: 120px;
+  position: relative;
+  background-color: #e0e0e0;
+  border-radius: 8px;
+}
+
+.historyImage {
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.historyImage.latest {
+  border-radius: 8px;
+  border: 2px solid #5b9bd5;
+  box-shadow: 0 2px 8px rgba(91, 155, 213, 0.3);
+}
+
+.arrow.latest {
+  font-size: 2.2em;
+  color: #5b9bd5;
+  font-weight: bold;
+}
+
+.info.latestInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin-top: 0;
+}
+
+.info.latestInfo .celebrityName.latest,
+.celebrityName.latest {
+  font-size: 1.3em;
+  /* MODIFIED: Adjusted from 2em for better proportion */
+  font-weight: 700;
+  color: #2c5282;
+  margin-bottom: 6px;
+}
+
+.info.latestInfo .percentage.latest,
+.percentage.latest {
+  font-size: 1.1em;
+  color: #1a365d;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.info.latestInfo .date.latest,
+.date.latest {
+  font-size: 0.85em;
+  /* MODIFIED: Adjusted from 0.55em to be more consistent with original .date.latest */
+  color: #55708c;
+  font-weight: 500;
+}
+
+/* --- Styles for NON-LATEST items' children --- */
+.imageWrapper {
+  /* For images in NON-LATEST items */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.7rem;
+  color: #555;
+}
+
+/* Original .imageWrapper.latest - not directly used by new latest item's image row structure */
+.imageWrapper.latest {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.imageLabel {
+  margin-top: 3px;
+}
+
+.imageLabel.latest {
+  color: #5b9bd5;
+  font-weight: bold;
+}
+
+.arrow {
+  /* Default arrow styles (if used elsewhere) */
+  font-size: 1.5em;
+  color: #555;
+}
+
+/* Styles for the text group in NON-LATEST items */
+.info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  /* MODIFIED: Right-aligns the text lines within this block */
+  text-align: right;
+  /* ADDED: Ensures text content is right-aligned */
+  /* flex-grow: 1;          /* REMOVED */
+  /* margin-left: 5px;      /* REMOVED */
+}
+
+/* Default text styles for NON-LATEST items */
+.celebrityName {
+  font-size: 1em;
+  color: #333;
+  font-weight: 500;
+}
+
+.percentage {
+  font-size: 0.9em;
+  color: #5b9bd5;
+  font-weight: bold;
+}
+
+.date {
+  font-size: 0.8em;
+  /* Using 0.8em as per user's original non-latest spec */
+  color: #777;
+  margin-top: 4px;
+}
+
+.latestBadge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: linear-gradient(45deg, #ff6b6b, #feca57);
+  color: white;
+  font-size: 0.7em;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.emptyMessage {
+  color: #777;
+  text-align: center;
+  padding: 20px 0;
+}

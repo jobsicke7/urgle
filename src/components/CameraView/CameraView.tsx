@@ -51,10 +51,10 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
       clearTimeout(frameTimeoutRef.current);
     }
   };
-  
+
   const setupCamera = useCallback(async () => {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      setError("브라우저가 카메라 기능을 지원하지 않아요.");
+      setError("웅 커매러 지원 안해~");
       setIsCameraReady(false);
       return;
     }
@@ -69,7 +69,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
       }
     } catch (err) {
       console.error("Camera access failed: ", err);
-      setError("카메라 접근 권한이 필요합니다.");
+      setError("카메라 접근 권한 없어~");
       setIsCameraReady(false);
     }
   }, []);
@@ -93,7 +93,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
       if (blob && socketRef.current && socketRef.current.connected) {
         const arrayBuffer = await blob.arrayBuffer();
         const payload: MoodFrameToServer = {
-          order: `frame_${frameOrderRef.current++}`,
+          order: `frameOrderRef.current++.toString(16)`,
           data: arrayBuffer,
         };
         socketRef.current.emit('frame', payload);
@@ -105,12 +105,9 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
 
   useEffect(() => {
     setupCamera();
-    
-    // Socket.IO 연결 - 프로덕션에서는 프록시된 경로 사용
-    const socketUrl = process.env.NODE_ENV === 'production' 
-      ? window.location.origin  // 현재 도메인 사용 (https://your-app.vercel.app)
-      : 'http://kgh1113.ddns.net'; // 개발환경에서는 직접 연결
-      
+
+    const socketUrl = 'http://kgh1113.ddns.net';
+
     socketRef.current = io(socketUrl, {
       path: '/socket.io/',
       transports: ['polling', 'websocket'],
@@ -120,21 +117,21 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
     socketRef.current.on('connect', () => {
       console.log('Socket connected');
       if (isCameraReady) {
-         if (frameTimeoutRef.current) clearTimeout(frameTimeoutRef.current);
-         frameTimeoutRef.current = setTimeout(sendFrameForMoodDetection, FRAME_INTERVAL);
+        if (frameTimeoutRef.current) clearTimeout(frameTimeoutRef.current);
+        frameTimeoutRef.current = setTimeout(sendFrameForMoodDetection, FRAME_INTERVAL);
       }
     });
 
-    socketRef.current.on('mood_result', (data: MoodFrameFromServer) => {
+    socketRef.current.on('frame', (data: MoodFrameFromServer) => {
       const imageBase64 = arrayBufferToBase64(data.data);
       setMoodImageSrc(`data:image/jpeg;base64,${imageBase64}`);
     });
-    
-    socketRef.current.on('disconnect', () => {});
-    
+
+    socketRef.current.on('disconnect', () => { });
+
     socketRef.current.on('connect_error', (err) => {
       console.error('Socket connection error:', err);
-      setError("감정 분석 서버에 연결할 수 없습니다.");
+      setError("서버 연결 실패");
     });
 
     return () => {
@@ -202,7 +199,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
       });
       if (!lookAlikeRes.ok) throw new Error(`닮은꼴 분석 실패: ${lookAlikeRes.statusText}`);
       const resultData: LookAlikeResult = await lookAlikeRes.json();
-      
+
       setApiResultForPopup(resultData);
       setShowPopup(true);
 
@@ -211,6 +208,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
         alike: resultData.alike,
         percentage: resultData.percentage,
         resultImgUrl: resultData.resultImgUrl,
+        imgUrl: uploadResult.url,
         createdAt: new Date().toISOString(),
         userCapturedImageUrl: imageDataUrl,
       };
@@ -249,7 +247,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
           <div className={styles.preparationMessage}>카메라 준비 중...</div>
         )}
       </div>
-      
+
       {moodImageSrc && (
         <div className={styles.moodDisplay}>
           <p>실시간 감정 분석:</p>
@@ -263,14 +261,6 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
           className={styles.shutterButton}
           aria-label="사진 찍기"
           disabled={isLoading}
-        />
-      )}
-
-      {showPopup && capturedImageForPopup && apiResultForPopup && (
-        <ResultPopup
-          capturedImage={capturedImageForPopup}
-          result={apiResultForPopup}
-          onClose={handleClosePopup}
         />
       )}
       <canvas ref={canvasRef} style={{ display: 'none' }}></canvas>
