@@ -108,11 +108,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
 
     const socketUrl = 'http://kgh1113.ddns.net';
 
-    socketRef.current = io(socketUrl, {
-      path: '/socket.io/',
-      transports: ['polling', 'websocket'],
-      forceNew: true
-    });
+    socketRef.current = io("http://kgh1113.ddns.net:80/api/mood");
 
     socketRef.current.on('connect', () => {
       console.log('Socket connected');
