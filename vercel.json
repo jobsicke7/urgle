@@ -1,0 +1,16 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/look-alike",
+      "destination": "http://175.119.224.59:5000/api/look-alike"
+    },
+    {
+      "source": "/api/look-alike/upload",
+      "destination": "http://175.119.224.59:5000/api/look-alike/upload"
+    },
+    {
+      "source": "/api/mood/(.*)",
+      "destination": "http://175.119.224.59:5000/api/mood/$1"
+    }
+  ]
+}
