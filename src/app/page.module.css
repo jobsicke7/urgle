@@ -1,168 +1,62 @@
-.page {
-  --gray-rgb: 0, 0, 0;
-  --gray-alpha-200: rgba(var(--gray-rgb), 0.08);
-  --gray-alpha-100: rgba(var(--gray-rgb), 0.05);
-
-  --button-primary-hover: #383838;
-  --button-secondary-hover: #f2f2f2;
-
-  display: grid;
-  grid-template-rows: 20px 1fr 20px;
-  align-items: center;
-  justify-items: center;
-  min-height: 100svh;
-  padding: 80px;
-  gap: 64px;
-  font-family: var(--font-geist-sans);
-}
-
-@media (prefers-color-scheme: dark) {
-  .page {
-    --gray-rgb: 255, 255, 255;
-    --gray-alpha-200: rgba(var(--gray-rgb), 0.145);
-    --gray-alpha-100: rgba(var(--gray-rgb), 0.06);
-
-    --button-primary-hover: #ccc;
-    --button-secondary-hover: #1a1a1a;
-  }
-}
-
-.main {
+.container {
   display: flex;
-  flex-direction: column;
-  gap: 32px;
-  grid-row-start: 2;
+  flex-direction: column; /* 헤더, 메인콘텐츠, 푸터를 세로로 배치 */
+  min-height: 100vh; /* 화면 전체 높이를 차지하도록 */
+  background-color: #f0f2f5; /* globals.css와 통일감 */
 }
 
-.main ol {
-  font-family: var(--font-geist-mono);
-  padding-left: 0;
-  margin: 0;
-  font-size: 14px;
-  line-height: 24px;
-  letter-spacing: -0.01em;
-  list-style-position: inside;
+.header {
+  padding: 15px 30px; /* 헤더 내부 여백 (상하, 좌우) */
+  background-color: #ffffff; /* 흰색 배경 */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05); /* 은은한 그림자 */
+  /* border-bottom: 1px solid #e0e0e0; */
 }
 
-.main li:not(:last-of-type) {
-  margin-bottom: 8px;
+.logo {
+  font-size: 2em; /* 로고 크기 */
+  font-weight: bold;
+  color: #333; /* 로고 색상 */
+  margin: 0; /* 기본 마진 제거 */
+  /* UI 이미지의 UR·GLE 텍스트를 참고했어요. */
+  font-family: 'Arial Black', Gadget, sans-serif; /* 좀 더 굵은 느낌의 폰트로 */
+  letter-spacing: -1px; /* 자간을 살짝 좁게 */
 }
 
-.main code {
-  font-family: inherit;
-  background: var(--gray-alpha-100);
-  padding: 2px 4px;
-  border-radius: 4px;
-  font-weight: 600;
-}
-
-.ctas {
+.mainContent {
   display: flex;
-  gap: 16px;
+  flex-grow: 1; /* 헤더, 푸터를 제외한 나머지 공간을 모두 차지 */
+  padding: 20px; /* 메인 콘텐츠 영역 주변 여백 */
+  gap: 20px; /* 왼쪽 패널과 오른쪽 패널 사이의 간격 */
 }
 
-.ctas a {
-  appearance: none;
-  border-radius: 128px;
-  height: 48px;
-  padding: 0 20px;
-  border: none;
-  border: 1px solid transparent;
-  transition:
-    background 0.2s,
-    color 0.2s,
-    border-color 0.2s;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  line-height: 20px;
-  font-weight: 500;
+.historyPanel {
+  /* flex: 0 0 300px; /* 너비 300px 고정, 늘어나거나 줄어들지 않음 */
+  /* HistoryList.module.css 에서 width를 고정했으므로 여기선 제거해도 됩니다. */
+  /* HistoryList 컴포넌트가 자체적으로 크기를 가질 것이므로, 여기서는 배치만 신경써도 됩니다. */
 }
 
-a.primary {
-  background: var(--foreground);
-  color: var(--background);
-  gap: 8px;
+.cameraPanel {
+  flex-grow: 1; /* 남은 공간을 카메라 패널이 모두 차지하도록 */
+  /* CameraView 컴포넌트가 이 공간을 채우게 됩니다. */
+  display: flex; /* CameraView가 flex-item으로 잘 동작하도록 */
 }
 
-a.secondary {
-  border-color: var(--gray-alpha-200);
-  min-width: 158px;
+/* .footer {
+  text-align: center;
+  padding: 15px;
+  background-color: #333;
+  color: #fff;
+  font-size: 0.9em;
 }
+*/
 
-.footer {
-  grid-row-start: 3;
-  display: flex;
-  gap: 24px;
-}
-
-.footer a {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.footer img {
-  flex-shrink: 0;
-}
-
-/* Enable hover only on non-touch devices */
-@media (hover: hover) and (pointer: fine) {
-  a.primary:hover {
-    background: var(--button-primary-hover);
-    border-color: transparent;
+/* 모바일 화면 등 작은 화면에서는 세로로 배치되도록 미디어 쿼리를 추가할 수 있어요. */
+@media (max-width: 768px) {
+  .mainContent {
+    flex-direction: column; /* 작은 화면에서는 히스토리와 카메라를 세로로 쌓습니다. */
   }
-
-  a.secondary:hover {
-    background: var(--button-secondary-hover);
-    border-color: transparent;
-  }
-
-  .footer a:hover {
-    text-decoration: underline;
-    text-underline-offset: 4px;
-  }
-}
-
-@media (max-width: 600px) {
-  .page {
-    padding: 32px;
-    padding-bottom: 80px;
-  }
-
-  .main {
-    align-items: center;
-  }
-
-  .main ol {
-    text-align: center;
-  }
-
-  .ctas {
-    flex-direction: column;
-  }
-
-  .ctas a {
-    font-size: 14px;
-    height: 40px;
-    padding: 0 16px;
-  }
-
-  a.secondary {
-    min-width: auto;
-  }
-
-  .footer {
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  .logo {
-    filter: invert();
+  .historyPanel {
+    margin-bottom: 20px; /* 카메라 패널과의 간격 */
+    /* width: 100%; // 필요하다면 너비 100%로 */
   }
 }

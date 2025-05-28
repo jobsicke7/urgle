@@ -1,0 +1,35 @@
+.spinnerContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%; /* 부모 요소(카메라 영역) 전체를 채우도록 */
+    background-color: rgba(200, 200, 200, 0.8); /* 반투명 배경 */
+    position: absolute; /* 카메라 영역 위에 뜨도록 */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10; /* 다른 요소들보다 위에 표시 */
+  }
+  
+  .spinner {
+    border: 5px solid #f3f3f3; /* Light grey */
+    border-top: 5px solid #5b9bd5; /* Blue - 좀 더 눈에 띄는 색으로 바꿨어요 */
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  .loadingText {
+    margin-top: 20px;
+    font-size: 1.2em;
+    color: #333; /* 글자색은 좀 더 진하게 */
+    font-weight: bold;
+  }
