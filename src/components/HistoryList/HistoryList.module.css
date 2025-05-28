@@ -1,19 +1,20 @@
+/* components/HistoryList/HistoryList.module.css */
 .historyContainer {
     padding: 20px;
-    background-color: #ffffff; /* UI 이미지에서 왼쪽 영역 배경색 */
+    background-color: #ffffff;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* 약간의 그림자 효과 */
-    width: 300px; /* 너비 고정, 필요에 따라 조절하세요 */
-    height: calc(100vh - 100px); /* 헤더 높이 등을 고려한 값, 임시 */
-    overflow-y: auto; /* 내용이 많아지면 스크롤 */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    width: 350px; /* 너비를 살짝 늘렸습니다. */
+    height: calc(100vh - 100px);
+    overflow-y: auto;
   }
   
   .title {
-    font-size: 1.8em; /* 'History' 텍스트 크기를 좀 더 키웠어요 */
+    font-size: 1.8em;
     color: #333;
     margin-top: 0;
     margin-bottom: 20px;
-    font-weight: 1000; /* 약간 더 두껍게 */
+    font-weight: 600;
   }
   
   .list {
@@ -25,50 +26,63 @@
   .listItem {
     display: flex;
     align-items: center;
-    margin-bottom: 15px; /* 아이템 간 간격 */
+    margin-bottom: 15px;
     padding: 10px;
     border: 1px solid #e0e0e0;
     border-radius: 6px;
     background-color: #f9f9f9;
+    gap: 10px; /* 아이템 간 간격 */
+  }
+  
+  .imageWrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 0.7rem;
+    color: #555;
+  }
+  
+  .historyImage {
+    border-radius: 4px;
+    object-fit: cover;
+  }
+  
+  .imageLabel {
+    margin-top: 3px;
   }
   
   .arrow {
-    margin: 0 10px; /* 화살표 좌우 여백 */
     font-size: 1.5em;
     color: #555;
   }
   
-  .result {
+  .info {
     display: flex;
-    flex-direction: column; /* 결과 이미지와 이름을 세로로 배치 */
-    align-items: center;
+    flex-direction: column;
+    flex-grow: 1;
+    margin-left: 5px;
   }
   
   .celebrityName {
-    margin-top: 5px; /* 결과 이름 상단 여백 */
-    font-size: 0.9em;
+    font-size: 1em;
     color: #333;
     font-weight: 500;
-    background-color: #e7e7e7; /* UI 이미지의 이름 배경색 참고 */
-    padding: 3px 8px;
-    border-radius: 4px;
+  }
+  
+  .percentage {
+    font-size: 0.9em;
+    color: #5b9bd5;
+    font-weight: bold;
+  }
+  
+  .date {
+    font-size: 0.8em;
+    color: #777;
+    margin-top: 4px;
   }
   
   .emptyMessage {
     color: #777;
     text-align: center;
     padding: 20px 0;
-  }
-  
-  /* 임시 이미지 플레이스홀더 스타일 */
-  .imagePlaceholder {
-    width: 60px; /* UI 이미지의 썸네일 크기에 맞춰서 조절 */
-    height: 60px;
-    background-color: #d0d0d0; /* 약간 어두운 회색 */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 4px; /* 모서리 살짝 둥글게 */
-    font-size: 0.8em;
-    color: #fff; /* 글자색은 흰색으로 */
   }

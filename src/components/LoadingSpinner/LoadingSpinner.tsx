@@ -1,3 +1,4 @@
+// components/LoadingSpinner/LoadingSpinner.tsx
 import styles from './LoadingSpinner.module.css';
 
 const LoadingSpinner = () => {
