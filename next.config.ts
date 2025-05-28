@@ -29,6 +29,19 @@ const nextConfig: NextConfig = {
       }
     ];
   },
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: "connect-src 'self' http://kgh1113.ddns.net https://kgh1113.ddns.net ws://kgh1113.ddns.net wss://kgh1113.ddns.net data: blob:;"
+          }
+        ]
+      }
+    ];
+  }
 };
 
 export default nextConfig;
