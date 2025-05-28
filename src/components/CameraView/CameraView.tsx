@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import styles from './CameraView.module.css';
-import LoadingSpinner from '../LoadingSpinner/LoadingSpinner'; // LoadingSpinner 이름 변경 (충돌 방지)
+import LoadingSpinner from '../LoadingSpinner/LoadingSpinner';
 import ResultPopup from '../ResultPopup/ResultPopup';
 import { HistoryItem, ApiResult } from '@/types';
 
@@ -17,8 +17,8 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isCameraReady, setIsCameraReady] = useState(false);
-  const [isLoading, setIsLoading] = useState(false); // API 통신 로딩
-  const [isModelsLoading, setIsModelsLoading] = useState(true); // 모델 로딩 상태
+  const [isLoading, setIsLoading] = useState(false);
+  const [isModelsLoading, setIsModelsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showPopup, setShowPopup] = useState(false);
   const [capturedImageForPopup, setCapturedImageForPopup] = useState<string | null>(null);
@@ -28,8 +28,6 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
   useEffect(() => {
     const loadModels = async () => {
       try {
-        // public 폴더에 face-api 모델 파일들을 배치해야 합니다.
-        // 예: public/models/tiny_face_detector_model-weights_manifest.json 등
         await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
         await faceapi.nets.faceLandmark68Net.loadFromUri('/models');
         await faceapi.nets.faceRecognitionNet.loadFromUri('/models');
@@ -69,7 +67,6 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
       }
     };
 
-    // 모델 로드가 완료된 후에 카메라를 설정
     loadModels().then(() => {
       setupCamera();
     });
@@ -82,7 +79,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
     };
   }, []);
 
-  // 실시간 얼굴 감지 및 감정 분석 (모델 로드 및 카메라 준비 후)
+  // 실시간 얼굴 감지 및 감정 분석
   useEffect(() => {
     if (!isCameraReady || isModelsLoading || !videoRef.current || !canvasRef.current) {
       return;
@@ -97,46 +94,108 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
       return;
     }
 
-    const displaySize = { width: video.videoWidth, height: video.videoHeight };
-    // 비디오 크기가 0이면 아직 메타데이터 로딩 전이므로 처리 중지
-    if (displaySize.width === 0 || displaySize.height === 0) {
-      return;
-    }
-    faceapi.matchDimensions(canvas, displaySize);
+    let animationFrameId: number;
 
     const detectFaces = async () => {
-      if (video.paused || video.ended) { // 비디오가 정지되거나 끝나면 루프 중단
+      if (video.paused || video.ended || !video.videoWidth || !video.videoHeight) {
         return;
       }
 
-      // 얼굴 감지 옵션 설정 (TinyFaceDetector 사용)
-      const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceExpressions();
+      // 캔버스 크기를 비디오의 실제 크기로 설정
+      const displaySize = { width: video.videoWidth, height: video.videoHeight };
+      
+      // 캔버스 크기 업데이트
+      canvas.width = displaySize.width;
+      canvas.height = displaySize.height;
+      
+      faceapi.matchDimensions(canvas, displaySize);
 
-      // 감지된 결과를 캔버스 크기에 맞게 조정
-      const resizedDetections = faceapi.resizeResults(detections, displaySize);
+      try {
+        // 얼굴 감지 및 감정 분석
+        const detections = await faceapi
+          .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.5 }))
+          .withFaceLandmarks()
+          .withFaceExpressions();
 
-      // 캔버스 초기화
-      context.clearRect(0, 0, canvas.width, canvas.height);
+        // 캔버스 초기화
+        context.clearRect(0, 0, canvas.width, canvas.height);
 
-      // 바운딩 박스 그리기
-      faceapi.draw.drawDetections(canvas, resizedDetections);
+        if (detections.length > 0) {
+          // 감지된 결과를 캔버스 크기에 맞게 조정
+          const resizedDetections = faceapi.resizeResults(detections, displaySize);
 
-      // 감정 표현 그리기
-      faceapi.draw.drawFaceExpressions(canvas, resizedDetections);
+          // 얼굴 외곽선 그리기 (바운딩 박스)
+          faceapi.draw.drawDetections(canvas, resizedDetections);
+
+          // 랜드마크 점들 그리기 (선택사항)
+          faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
+
+          // 각 얼굴에 대해 감정 표시
+          resizedDetections.forEach((detection) => {
+            const { x, y } = detection.detection.box;
+            const expressions = detection.expressions;
+            
+            // 가장 높은 확률의 감정 찾기
+            const maxExpression = Object.keys(expressions).reduce((a, b) => 
+              expressions[a as keyof typeof expressions] > expressions[b as keyof typeof expressions] ? a : b
+            );
+            const maxValue = expressions[maxExpression as keyof typeof expressions] as number;
+
+            // 텍스트 스타일 설정
+            context.fillStyle = '#00ff00';
+            context.font = '16px Arial';
+            context.strokeStyle = '#000000';
+            context.lineWidth = 2;
+
+            // 주요 감정 표시
+            const mainText = `${maxExpression}: ${(maxValue * 100).toFixed(1)}%`;
+            context.strokeText(mainText, x, y - 10);
+            context.fillText(mainText, x, y - 10);
+
+            // 모든 감정 확률 표시 (상위 3개)
+            const sortedExpressions = Object.entries(expressions)
+              .sort(([,a], [,b]) => b - a)
+              .slice(0, 3);
+
+            sortedExpressions.forEach(([emotion, probability], index) => {
+              const text = `${emotion}: ${(probability * 100).toFixed(1)}%`;
+              const yPos = y + detection.detection.box.height + 20 + (index * 20);
+              
+              context.strokeText(text, x, yPos);
+              context.fillText(text, x, yPos);
+            });
+          });
+        }
+      } catch (error) {
+        console.error('얼굴 감지 중 오류:', error);
+      }
 
       // 다음 프레임 요청
-      requestAnimationFrame(detectFaces);
+      animationFrameId = requestAnimationFrame(detectFaces);
     };
 
-    // 비디오 재생 시작 시 감지 시작
-    video.addEventListener('play', detectFaces);
+    // 비디오가 재생 중이면 감지 시작
+    const startDetection = () => {
+      if (video.readyState >= 2) { // HAVE_CURRENT_DATA
+        detectFaces();
+      }
+    };
 
-    // 컴포넌트 언마운트 시 이벤트 리스너 제거
+    // 비디오 준비 상태 확인
+    if (video.readyState >= 2) {
+      startDetection();
+    } else {
+      video.addEventListener('loadeddata', startDetection);
+    }
+
+    // 정리 함수
     return () => {
-      video.removeEventListener('play', detectFaces);
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+      video.removeEventListener('loadeddata', startDetection);
     };
   }, [isCameraReady, isModelsLoading]);
-
 
   const handleTakePhoto = useCallback(async () => {
     if (!videoRef.current || !canvasRef.current || !isCameraReady || isModelsLoading) {
@@ -144,30 +203,28 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
       return;
     }
 
-    setIsLoading(true); // API 통신 로딩 시작
+    setIsLoading(true);
     setError(null);
 
     const video = videoRef.current;
-    const canvas = canvasRef.current;
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = video.videoWidth;
+    tempCanvas.height = video.videoHeight;
 
-    // 캔버스 크기를 비디오 스트림의 실제 크기와 동일하게 설정
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-
-    const context = canvas.getContext('2d');
+    const context = tempCanvas.getContext('2d');
     if (!context) {
       setError("캔버스 컨텍스트를 가져올 수 없어요.");
       setIsLoading(false);
       return;
     }
 
-    // 비디오 프레임을 캔버스에 그립니다.
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    // 비디오 프레임을 임시 캔버스에 그립니다.
+    context.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
 
-    const imageDataUrl = canvas.toDataURL('image/jpeg');
+    const imageDataUrl = tempCanvas.toDataURL('image/jpeg');
     setCapturedImageForPopup(imageDataUrl);
 
-    const imageBlob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/jpeg'));
+    const imageBlob = await new Promise<Blob | null>(resolve => tempCanvas.toBlob(resolve, 'image/jpeg'));
 
     if (!imageBlob) {
       setError("이미지 데이터를 Blob으로 변환하는 데 실패했어요.");
@@ -179,12 +236,11 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
     formData.append('photo', imageBlob, 'capture.jpg');
 
     try {
-      // TODO: 여기에 실제 API 엔드포인트와 로직을 넣어주세요!
       console.log("서버로 전송될 이미지 데이터 (Blob):", imageBlob);
       console.log("서버로 전송될 FormData:", formData.get('photo'));
-      await new Promise(resolve => setTimeout(resolve, 2000)); // 2초 딜레이 시뮬레이션
+      await new Promise(resolve => setTimeout(resolve, 2000));
       const mockResult: ApiResult = {
-        celebrityName: "아이유", // 예시 결과
+        celebrityName: "아이유",
       };
 
       setApiResultForPopup(mockResult);
@@ -205,7 +261,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [isCameraReady, isModelsLoading, onNewHistoryItem]); // isModelsLoading 의존성 추가
+  }, [isCameraReady, isModelsLoading, onNewHistoryItem]);
 
   const handleClosePopup = () => {
     setShowPopup(false);
@@ -213,12 +269,10 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
     setApiResultForPopup(null);
   };
 
-  // 오류 메시지가 있다면 화면에 보여줍니다.
   if (error && !isLoading) {
     return <div className={styles.errorMessage}>{error}</div>;
   }
 
-  // 모델 로딩 중일 때 표시
   if (isModelsLoading) {
     return (
       <div className={styles.cameraContainer}>
@@ -229,31 +283,25 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
 
   return (
     <div className={styles.cameraContainer}>
-      {/* 로딩 스피너 (API 통신 중) */}
       {isLoading && <LoadingSpinner />}
 
-      {/* 비디오 화면과 오버레이 캔버스 */}
       <video
         ref={videoRef}
         className={styles.videoFeed}
         playsInline
         muted
-        // isCameraReady && !isLoading 일 때만 보이도록
         style={{ display: isCameraReady && !isLoading ? 'block' : 'none' }}
       />
       <canvas
         ref={canvasRef}
-        className={styles.overlayCanvas} // CSS로 비디오 위에 오버레이
-        // 비디오와 동일하게 isCameraReady && !isLoading 일 때만 보이도록
+        className={styles.overlayCanvas}
         style={{ display: isCameraReady && !isLoading ? 'block' : 'none' }}
       />
 
-      {/* 카메라가 준비 안됐는데 로딩중도 아닐 때, 안내 메시지 */}
       {!isCameraReady && !isLoading && !error && (
         <div className={styles.preparationMessage}>카메라를 준비하고 있어요... 잠시만요!</div>
       )}
 
-      {/* 사진 찍기 버튼 */}
       {!isLoading && isCameraReady && (
         <button
           onClick={handleTakePhoto}
@@ -264,7 +312,6 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
         </button>
       )}
 
-      {/* 결과 팝업 */}
       {showPopup && capturedImageForPopup && apiResultForPopup && (
         <ResultPopup
           capturedImage={capturedImageForPopup}
