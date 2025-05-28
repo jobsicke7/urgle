@@ -1,10 +1,8 @@
-// components/CameraView/CameraView.tsx
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import styles from './CameraView.module.css';
 import LoadingSpinner from '../LoadingSpinner/LoadingSpinner';
-import ResultPopup from '../ResultPopup/ResultPopup';
 import { HistoryItem, LookAlikeResult, UploadResponse, MoodFrameToServer, MoodFrameFromServer } from '@/types';
 import Image from 'next/image';
 import io, { Socket } from 'socket.io-client';
@@ -32,7 +30,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
   const moodCanvasRef = useRef<HTMLCanvasElement>(null);
   const socketRef = useRef<Socket | null>(null);
   const frameTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const frameOrderRef = useRef(0);
+  const [frameOrder, setFameOrder] = useState<number>(0);
 
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -91,9 +89,10 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
     canvas.toBlob(async (blob) => {
       if (blob && socketRef.current && socketRef.current.connected) {
+        console.log(`Frame ${frameOrder} sent to server`);
         const arrayBuffer = await blob.arrayBuffer();
         const payload: MoodFrameToServer = {
-          order: `frameOrderRef.current++.toString(16)`,
+          order: `${frameOrder}`,
           data: arrayBuffer,
         };
         socketRef.current.emit('frame', payload);
@@ -148,7 +147,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
 
   const handleTakePhoto = useCallback(async () => {
     if (!videoRef.current || !canvasRef.current || !isCameraReady) {
-      setError("카메라가 준비되지 않았습니다.");
+      setError("카메라 로딩 실패");
       return;
     }
 
@@ -161,7 +160,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
     canvas.height = video.videoHeight;
     const context = canvas.getContext('2d');
     if (!context) {
-      setError("캔버스 컨텍스트를 가져올 수 없습니다.");
+      setError("가져오기 실패");
       setIsLoading(false);
       return;
     }
@@ -212,7 +211,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
 
     } catch (apiError: any) {
       console.error("API Error:", apiError);
-      setError(apiError.message || "결과 분석 중 오류가 발생했습니다.");
+      setError(apiError.message || "오류 발생");
     } finally {
       setIsLoading(false);
     }
@@ -246,7 +245,6 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
 
       {moodImageSrc && (
         <div className={styles.moodDisplay}>
-          <p>실시간 감정 분석:</p>
           <Image src={moodImageSrc} alt="Mood analysis" width={160} height={120} className={styles.moodImage} />
         </div>
       )}
@@ -255,7 +253,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
         <button
           onClick={handleTakePhoto}
           className={styles.shutterButton}
-          aria-label="사진 찍기"
+          aria-label="촬영"
           disabled={isLoading}
         />
       )}

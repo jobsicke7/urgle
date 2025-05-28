@@ -22,22 +22,18 @@
   margin: 0;
 }
 
-/* Styles for NON-LATEST items primarily */
 .listItem {
   display: flex;
   justify-content: space-between;
-  /* MODIFIED: Distributes children (Image1, Image2, InfoGroup) */
   align-items: center;
   margin-bottom: 15px;
   padding: 10px;
   border: 1px solid #e0e0e0;
   border-radius: 6px;
   background-color: #f9f9f9;
-  /* gap: 10px; /* REMOVED: space-between handles main group spacing. */
   transition: all 0.3s ease;
 }
 
-/* --- Styles for the LATEST item (Preserved from previous state with minor adjustments) --- */
 .listItem.latest {
   display: flex;
   flex-direction: column;
@@ -47,7 +43,6 @@
   background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
   box-shadow: 0 4px 12px rgba(91, 155, 213, 0.2);
   transform: scale(1.02);
-  /* MODIFIED: Restored from user's original CSS */
   margin-bottom: 40px;
 }
 
@@ -96,7 +91,6 @@
 .info.latestInfo .celebrityName.latest,
 .celebrityName.latest {
   font-size: 1.3em;
-  /* MODIFIED: Adjusted from 2em for better proportion */
   font-weight: 700;
   color: #2c5282;
   margin-bottom: 6px;
@@ -113,14 +107,11 @@
 .info.latestInfo .date.latest,
 .date.latest {
   font-size: 0.85em;
-  /* MODIFIED: Adjusted from 0.55em to be more consistent with original .date.latest */
   color: #55708c;
   font-weight: 500;
 }
 
-/* --- Styles for NON-LATEST items' children --- */
 .imageWrapper {
-  /* For images in NON-LATEST items */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -128,7 +119,6 @@
   color: #555;
 }
 
-/* Original .imageWrapper.latest - not directly used by new latest item's image row structure */
 .imageWrapper.latest {
   font-size: 0.8rem;
   font-weight: 600;
@@ -144,24 +134,17 @@
 }
 
 .arrow {
-  /* Default arrow styles (if used elsewhere) */
   font-size: 1.5em;
   color: #555;
 }
 
-/* Styles for the text group in NON-LATEST items */
 .info {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  /* MODIFIED: Right-aligns the text lines within this block */
   text-align: right;
-  /* ADDED: Ensures text content is right-aligned */
-  /* flex-grow: 1;          /* REMOVED */
-  /* margin-left: 5px;      /* REMOVED */
 }
 
-/* Default text styles for NON-LATEST items */
 .celebrityName {
   font-size: 1em;
   color: #333;
@@ -176,7 +159,6 @@
 
 .date {
   font-size: 0.8em;
-  /* Using 0.8em as per user's original non-latest spec */
   color: #777;
   margin-top: 4px;
 }

@@ -11,7 +11,7 @@ const HistoryList: React.FC<HistoryListProps> = ({ items }) => {
     return (
       <div className={styles.historyContainer}>
         <h2 className={styles.title}>History</h2>
-        <p className={styles.emptyMessage}>아직 기록이 없어요. 사진을 찍어 첫 기록을 만들어보세요!</p>
+        <p className={styles.emptyMessage}></p>
       </div>
     );
   }
@@ -64,7 +64,7 @@ const HistoryList: React.FC<HistoryListProps> = ({ items }) => {
                   <div className={styles.imageWrapper}>
                     <Image
                       src={item.imgUrl}
-                      alt="촬영 사진"
+                      alt="원본"
                       width={60}
                       height={60}
                       className={styles.historyImage}

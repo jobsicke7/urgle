@@ -1,4 +1,3 @@
-// app/page.tsx
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -19,7 +18,7 @@ export default function HomePage() {
         throw new Error(`기록을 불러오는데 실패했습니다: ${response.statusText}`);
       }
       const data: HistoryItem[] = await response.json();
-      setHistoryItems(data.sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+      setHistoryItems(data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
     } catch (err: any) {
       console.error("Failed to fetch history:", err);
       setErrorPage(err.message || "기록을 불러올 수 없습니다.");
@@ -32,7 +31,7 @@ export default function HomePage() {
 
   const handleAddNewHistoryItem = useCallback((newItem: HistoryItem) => {
     setHistoryItems(prevItems => [newItem, ...prevItems]
-      .sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
   }, []);
 
 
