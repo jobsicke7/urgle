@@ -5,7 +5,6 @@ import styles from './page.module.css';
 import HistoryList from '@/components/HistoryList/HistoryList';
 import CameraView from '@/components/CameraView/CameraView';
 import { HistoryItem } from '@/types';
-import { API_BASE_URL } from '@/lib/constants';
 
 export default function HomePage() {
   const [historyItems, setHistoryItems] = useState<HistoryItem[]>([]);
@@ -13,7 +12,8 @@ export default function HomePage() {
 
   const fetchHistory = useCallback(async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/look-alike`);
+      // 변경된 부분: 상대 경로로 API 호출
+      const response = await fetch('/api/look-alike/history');
       if (!response.ok) {
         throw new Error(`기록을 불러오는데 실패했습니다: ${response.statusText}`);
       }
@@ -33,7 +33,6 @@ export default function HomePage() {
     setHistoryItems(prevItems => [newItem, ...prevItems]
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
   }, []);
-
 
   return (
     <div className={styles.container}>
