@@ -34,10 +34,10 @@ const nextConfig: NextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "connect-src 'self' ws: wss: data: blob: https://cloudflareinsights.com https://*.cloudflareinsights.com http://kgh1113.ddns.net ws://kgh1113.ddns.net",
+              "connect-src 'self' ws: wss: data: blob: https://cloudflareinsights.com https://*.cloudflareinsights.com http://kgh1113.ddns.net ws://kgh1113.ddns.net https://api.jobsickes.shop wss://api.jobsickes.shop",
               "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://static.cloudflareinsights.com",
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: blob: https://kgh1113.ddns.net",
+              "img-src 'self' data: blob: https://kgh1113.ddns.net http://kgh1113.ddns.net https://api.jobsickes.shop",
               "font-src 'self'",
               "object-src 'none'",
               "base-uri 'self'",
