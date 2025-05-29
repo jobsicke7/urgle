@@ -84,37 +84,167 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
     });
   }, [clearProcessingTimeout]);
 
-  const setupCamera = useCallback(async () => {
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      setError("브라우저가 카메라를 지원하지 않음");
-      setIsCameraReady(false);
-      return;
-    }
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.onloadedmetadata = () => {
-          videoRef.current?.play().catch(err_play => {
-            console.error("카메라 로딩 실패:", err_play);
-            setError("카메라를 로딩할 수 없습니다.");
-          });
-        };
-        videoRef.current.oncanplay = () => {
-          setIsCameraReady(true);
-          setError(null);
+  // 개선된 setupCamera 함수
+const setupCamera = useCallback(async () => {
+  // 이전 스트림이 있다면 먼저 정리
+  if (videoRef.current && videoRef.current.srcObject) {
+    const oldStream = videoRef.current.srcObject as MediaStream;
+    oldStream.getTracks().forEach(track => track.stop());
+    videoRef.current.srcObject = null;
+  }
+
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    setError("브라우저가 카메라를 지원하지 않습니다");
+    setIsCameraReady(false);
+    return;
+  }
+
+  try {
+    // 카메라 제약조건 명시적으로 설정
+    const constraints = {
+      video: {
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+        facingMode: 'user' // 전면 카메라 우선
+      }
+    };
+
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    
+    if (videoRef.current) {
+      videoRef.current.srcObject = stream;
+      
+      // Promise 체인으로 순차 처리
+      return new Promise<void>((resolve, reject) => {
+        if (!videoRef.current) {
+          reject(new Error("Video element not found"));
+          return;
         }
-      }
-    } catch (err_camera) {
-      console.error("카메라 접근 실패: ", err_camera);
-      if ((err_camera as Error).name === "NotAllowedError" || (err_camera as Error).name === "PermissionDeniedError") {
-        setError("카메라 권한 거부");
-      } else {
-        setError("카메라 복수 사용");
-      }
-      setIsCameraReady(false);
+
+        videoRef.current.onloadedmetadata = () => {
+          if (!videoRef.current) return;
+          
+          videoRef.current.play()
+            .then(() => {
+              setIsCameraReady(true);
+              setError(null);
+              resolve();
+            })
+            .catch(err_play => {
+              console.error("비디오 재생 실패:", err_play);
+              setError("카메라를 시작할 수 없습니다");
+              reject(err_play);
+            });
+        };
+
+        videoRef.current.onerror = (err) => {
+          console.error("비디오 요소 오류:", err);
+          setError("비디오 스트림 오류");
+          reject(err);
+        };
+
+        // 타임아웃 설정 (10초)
+        setTimeout(() => {
+          if (!isCameraReady) {
+            setError("카메라 로딩 시간 초과");
+            reject(new Error("Camera loading timeout"));
+          }
+        }, 10000);
+      });
     }
-  }, []);
+  } catch (err_camera) {
+    console.error(err_camera);
+    
+    const error = err_camera as Error;
+    switch (error.name) {
+
+      default:
+        setError(`${error.name || "알 수 없는 오류"}`);
+    }
+    setIsCameraReady(false);
+  }
+}, [isCameraReady]);
+
+// 재시도 함수 추가
+const retryCamera = useCallback(async () => {
+  setError(null);
+  setIsCameraReady(false);
+  
+  // 잠시 대기 후 재시도
+  setTimeout(() => {
+    setupCamera();
+  }, 1000);
+}, [setupCamera]);
+
+// useEffect 수정 - 순차적 초기화
+useEffect(() => {
+  let mounted = true;
+  
+  const initializeApp = async () => {
+    try {
+      // 1. 먼저 소켓 연결
+      setupSocket();
+      
+      // 2. 소켓 연결 후 카메라 초기화
+      await new Promise(resolve => setTimeout(resolve, 500)); // 짧은 대기
+      
+      if (mounted) {
+        await setupCamera();
+      }
+    } catch (error) {
+      console.error("초기화 실패:", error);
+      if (mounted) {
+        setError("초기화에 실패했습니다. 페이지를 새로고침해주세요.");
+      }
+    }
+  };
+
+  initializeApp();
+
+  return () => {
+    mounted = false;
+    
+    // 정리 작업
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach(track => track.stop());
+      videoRef.current.srcObject = null;
+    }
+    
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+    
+    clearProcessingTimeout();
+    
+    if (socketRef.current) {
+      socketRef.current.disconnect();
+      socketRef.current = null;
+    }
+  };
+}, []); // 빈 의존성 배열로 한 번만 실행
+
+// 에러 메시지 표시 부분에 재시도 버튼 추가
+{error && !isLoading && (
+  <div className={styles.errorMessage}>
+    {error}
+    <button 
+      onClick={retryCamera}
+      style={{
+        marginTop: '10px',
+        padding: '8px 16px',
+        backgroundColor: '#5b9bd5',
+        color: 'white',
+        border: 'none',
+        borderRadius: '4px',
+        cursor: 'pointer'
+      }}
+    >
+      다시 시도
+    </button>
+  </div>
+)}
 
   const sendFrameForMoodDetection = useCallback(() => {
     const now = Date.now();
