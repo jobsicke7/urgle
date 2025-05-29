@@ -4,6 +4,7 @@ import { createServer } from 'http';
 
 const ioHandler = (req: NextRequest, { params }: { params: any }) => {
   if (!(req as any).socket?.server?.io) {
+    console.log('Initializing Socket.IO server...');
     const httpServer = createServer();
     const io = new Server(httpServer, {
       path: '/api/mood',

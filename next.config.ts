@@ -18,6 +18,10 @@ const nextConfig: NextConfig = {
       {
         source: '/socket.io/:path*',
         destination: 'http://kgh1113.ddns.net/socket.io/:path*',
+      },
+      {
+        source: '/api/mood/socket.io/:path*',
+        destination: 'http://kgh1113.ddns.net/api/mood/socket.io/:path*',
       }
     ];
   },
@@ -46,7 +50,7 @@ const nextConfig: NextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "connect-src 'self' ws: wss: data: blob: https://cloudflareinsights.com https://*.cloudflareinsights.com",
+              "connect-src 'self' ws: wss: data: blob: https://cloudflareinsights.com https://*.cloudflareinsights.com http://kgh1113.ddns.net ws://kgh1113.ddns.net",
               "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://static.cloudflareinsights.com",
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: blob: https://kgh1113.ddns.net",

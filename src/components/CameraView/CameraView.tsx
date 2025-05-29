@@ -126,14 +126,15 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
    setupCamera();
  
    try {
-     socketRef.current = io('/api/mood', {
-       transports: ['websocket', 'polling'],
-       upgrade: true,
-       rememberUpgrade: true,
-       timeout: 10000,
-       forceNew: true,
-     });
-
+    socketRef.current = io('https://kgh1113.ddns.net', {
+      path: '/api/mood',
+      transports: ['websocket', 'polling'],
+      upgrade: true,
+      rememberUpgrade: true,
+      timeout: 10000,
+      forceNew: true,
+    });
+    console.log('Socket initialized:', socketRef.current);
      socketRef.current.on('connect', () => {
        console.log('Socket connected');
        setIsSocketConnected(true);
