@@ -28,16 +28,22 @@
   padding: 15px;
   gap: 15px;
   min-height: 0;
+  overflow: hidden;
 }
 
+/* 카메라 패널 - 남은 공간을 모두 차지하면서 비율 유지 */
 .cameraPanel {
   flex: 1;
   display: flex;
+  min-width: 0; /* flexbox 축소 허용 */
   min-height: 0;
 }
 
+/* 히스토리 패널 - 내용에 따라 가로 길이 자동 조절 */
 .historyPanel {
-  flex-shrink: 0;
+  flex: 0 0 auto; /* 필요한 만큼만 공간 차지 */
+  display: flex;
+  min-width: 0;
 }
 
 .pageError {
@@ -55,25 +61,68 @@
   z-index: 100;
 }
 
-@media (max-width: 900px) {
+/* 태블릿 크기에서의 반응형 */
+@media (max-width: 1024px) {
   .mainContent {
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
   }
-
-  .historyPanel {
-    order: 2;
-    flex-shrink: 0;
-  }
-
-  .historyPanel > div {
-    width: 100% !important;
-    max-height: 200px;
-  }
-
+  
   .cameraPanel {
     order: 1;
     flex: 1;
+    min-height: 350px;
+  }
+  
+  .historyPanel {
+    order: 2;
+    flex: 0 0 auto;
+    max-height: 40vh;
+  }
+  
+  .historyPanel > div {
+    width: 100% !important;
+    max-width: none !important;
+    overflow-y: auto;
+  }
+}
+
+/* 모바일 크기에서의 반응형 */
+@media (max-width: 768px) {
+  .mainContent {
+    padding: 10px;
+    gap: 10px;
+  }
+  
+  .cameraPanel {
     min-height: 300px;
+  }
+  
+  .historyPanel {
+    max-height: 35vh;
+  }
+}
+
+/* 작은 모바일 화면 */
+@media (max-width: 480px) {
+  .header {
+    padding: 8px 15px;
+  }
+  
+  .logo {
+    font-size: 1.4em;
+  }
+  
+  .mainContent {
+    padding: 8px;
+    gap: 8px;
+  }
+  
+  .cameraPanel {
+    min-height: 250px;
+  }
+  
+  .historyPanel {
+    max-height: 30vh;
   }
 }

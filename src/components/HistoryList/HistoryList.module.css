@@ -3,11 +3,31 @@
   background-color: #ffffff;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  width: 400px;
+  /* 고정 너비 대신 최소/최대 너비로 자동 조절 */
+  min-width: 300px;
+  max-width: 500px;
+  width: auto;
+  flex: 0 0 auto; /* 필요한 만큼만 공간 차지 */
   height: 100%;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+}
+
+/* 작은 화면에서의 반응형 처리 */
+@media (max-width: 768px) {
+  .historyContainer {
+    min-width: 250px;
+    max-width: 350px;
+  }
+}
+
+@media (max-width: 480px) {
+  .historyContainer {
+    min-width: 200px;
+    max-width: 300px;
+    padding: 15px;
+  }
 }
 
 .title {
@@ -69,6 +89,15 @@
   position: relative;
   background-color: #e0e0e0;
   border-radius: 8px;
+  flex-shrink: 0; /* 이미지 크기 고정 */
+}
+
+/* 작은 화면에서 이미지 크기 조절 */
+@media (max-width: 480px) {
+  .latestImageContainer {
+    width: 100px;
+    height: 100px;
+  }
 }
 
 .historyImage {
@@ -109,6 +138,8 @@
   font-weight: 700;
   color: #2c5282;
   margin-bottom: 6px;
+  text-align: center; /* 텍스트 중앙 정렬 */
+  word-wrap: break-word; /* 긴 이름 줄바꿈 */
 }
 
 .info.latestInfo .percentage.latest,
@@ -155,12 +186,14 @@
   align-items: flex-end;
   text-align: right;
   flex-shrink: 0;
+  min-width: 0; /* flexbox 오버플로우 방지 */
 }
 
 .celebrityName {
   font-size: 1em;
   color: #333;
   font-weight: 500;
+  word-wrap: break-word; /* 긴 이름 줄바꿈 */
 }
 
 .percentage {
