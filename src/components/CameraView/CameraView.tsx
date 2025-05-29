@@ -52,7 +52,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
 
   const setupCamera = useCallback(async () => {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      setError("웅 커매러 지원 안해~");
+      setError("응 카메라 지원 안해~");
       setIsCameraReady(false);
       return;
     }
@@ -73,7 +73,6 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
   }, []);
 
   const sendFrameForMoodDetection = useCallback(() => {
-    // 소켓이 연결되지 않았으면 그냥 다음 프레임으로 넘어감
     if (!videoRef.current || !moodCanvasRef.current || !isSocketConnected) {
       animationFrameRef.current = requestAnimationFrame(sendFrameForMoodDetection);
       return;
@@ -91,7 +90,6 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
 
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
     canvas.toBlob(async (blob) => {
-      // 소켓 상태를 다시 한번 확인
       if (blob && socketRef.current && isSocketConnected) {
         try {
           const currentOrder = frameOrderRef.current++;
@@ -101,7 +99,6 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
             data: arrayBuffer,
           };
           
-          // emit에 타임아웃과 에러 핸들링 추가
           socketRef.current.timeout(5000).emit('frame', payload, (error: any, processed: any) => {
             if (error) {
               console.warn('Frame emit timeout or error:', error);
@@ -117,7 +114,6 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
           });
         } catch (socketError) {
           console.warn('Socket emit error:', socketError);
-          // 에러가 발생해도 계속 진행
         }
       }
       animationFrameRef.current = requestAnimationFrame(sendFrameForMoodDetection);
@@ -127,14 +123,13 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
   useEffect(() => {
     setupCamera();
   
-    // 소켓 연결 시도
     try {
       socketRef.current = io('/api/mood', {
         transports: ['websocket', 'polling'],
         upgrade: true,
         rememberUpgrade: true,
-        timeout: 10000, // 연결 타임아웃 10초
-        forceNew: true, // 새로운 연결 강제
+        timeout: 10000,
+        forceNew: true,
       });
 
       socketRef.current.on('connect', () => {
@@ -148,7 +143,6 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
       socketRef.current.on('connect_error', (err) => {
         console.warn('Socket connection error:', err);
         setIsSocketConnected(false);
-        // 에러를 사용자에게 표시하지 않고 조용히 처리
       });
 
       socketRef.current.on('disconnect', (reason) => {
@@ -156,7 +150,6 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
         setIsSocketConnected(false);
       });
 
-      // 재연결 시도
       socketRef.current.on('reconnect', () => {
         console.log('Socket reconnected');
         setIsSocketConnected(true);
@@ -214,7 +207,7 @@ const handleTakePhoto = useCallback(async () => {
 
   const imageBlob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/jpeg'));
   if (!imageBlob) {
-    setError("이미지 변환에 실패했습니다.");
+    setError("이미지 변환 실패");
     setIsLoading(false);
     return;
   }
@@ -235,7 +228,7 @@ const handleTakePhoto = useCallback(async () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ imgUrl: uploadResult.url }),
     });
-    if (!lookAlikeRes.ok) throw new Error(`닮은꼴 분석 실패: ${lookAlikeRes.statusText}`);
+    if (!lookAlikeRes.ok) throw new Error(`분석 실패: ${lookAlikeRes.statusText}`);
     const resultData: LookAlikeResult = await lookAlikeRes.json();
 
     setApiResultForPopup(resultData);

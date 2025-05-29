@@ -18,7 +18,7 @@ export async function GET() {
       const data = await response.json();
       return Response.json(data);
     } catch (error) {
-      console.error('History proxy error:', error);
+      console.error('History error:', error);
       return Response.json(
         { error: 'Internal server error', message: error instanceof Error ? error.message : 'Unknown error' }, 
         { status: 500 }

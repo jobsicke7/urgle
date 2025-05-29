@@ -18,7 +18,7 @@ export async function POST(request: Request) {
       const data = await response.json();
       return Response.json(data);
     } catch (error) {
-      console.error('Upload proxy error:', error);
+      console.error('Upload error:', error);
       return Response.json(
         { error: 'Internal server error', message: error instanceof Error ? error.message : 'Unknown error' }, 
         { status: 500 }

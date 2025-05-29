@@ -15,14 +15,12 @@ const nextConfig: NextConfig = {
   },
   async rewrites() {
     return [
-      // WebSocket 연결만 프록시 (API는 Next.js API Routes 사용)
       {
         source: '/socket.io/:path*',
         destination: 'http://kgh1113.ddns.net/socket.io/:path*',
       }
     ];
   },
-  // HTTPS 리다이렉트
   async redirects() {
     return [
       {
@@ -48,11 +46,9 @@ const nextConfig: NextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              // WebSocket 연결을 위해 자체 도메인과 WebSocket 프로토콜 허용
-              "connect-src 'self' ws: wss: data: blob:",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+              "connect-src 'self' ws: wss: data: blob: https://cloudflareinsights.com https://*.cloudflareinsights.com",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://static.cloudflareinsights.com",
               "style-src 'self' 'unsafe-inline'",
-              // 이미지는 자체 도메인과 blob, data URI만 허용 (외부 HTTP 제거)
               "img-src 'self' data: blob: https://kgh1113.ddns.net",
               "font-src 'self'",
               "object-src 'none'",

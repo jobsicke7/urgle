@@ -12,7 +12,6 @@ export default function HomePage() {
 
   const fetchHistory = useCallback(async () => {
     try {
-      // 변경된 부분: 상대 경로로 API 호출
       const response = await fetch('/api/look-alike/history');
       if (!response.ok) {
         throw new Error(`기록을 불러오는데 실패했습니다: ${response.statusText}`);

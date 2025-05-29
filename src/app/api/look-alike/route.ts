@@ -13,7 +13,7 @@ export async function POST(request: Request) {
       if (!response.ok) {
         const errorData = await response.text();
         return Response.json(
-          { error: `Look-alike analysis failed: ${response.statusText}`, details: errorData }, 
+          { error: `nalysis failed: ${response.statusText}`, details: errorData }, 
           { status: response.status }
         );
       }
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
       const data = await response.json();
       return Response.json(data);
     } catch (error) {
-      console.error('Look-alike proxy error:', error);
+      console.error('error:', error);
       return Response.json(
         { error: 'Internal server error', message: error instanceof Error ? error.message : 'Unknown error' }, 
         { status: 500 }
