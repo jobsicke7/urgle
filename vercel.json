@@ -23,7 +23,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "connect-src 'self' http://kgh1113.ddns.net ws://kgh1113.ddns.net data: blob:; default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: http://kgh1113.ddns.net https://kgh1113.ddns.net;"
+          "connect-src": "* data: blob: ws: wss:"
         },
         {
           "key": "Access-Control-Allow-Origin",
