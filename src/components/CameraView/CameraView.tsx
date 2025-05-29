@@ -335,7 +335,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
     <div className={styles.cameraContainer}>
       {isLoading && <LoadingSpinner />}
 
-      <div style={{
+      {/* <div style={{
         position: 'absolute',
         top: '10px',
         right: '10px',
@@ -348,7 +348,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
         border: `1px solid ${isSocketConnected ? 'green' : 'red'}`,
       }}>
         {isSocketConnected ? '연결됨' : '연결 안됨'}
-      </div>
+      </div> */}
 
       <div className={styles.videoWrapper}>
         <video
