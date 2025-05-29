@@ -28,6 +28,8 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
   const animationFrameRef = useRef<number | null>(null);
   const lastFrameTimeRef = useRef<number>(0);
   const socketRef = useRef<Socket | null>(null);
+  const frameCounterRef = useRef<number>(0);
+  const processingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -35,71 +37,56 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
   const [showPopup, setShowPopup] = useState(false);
   const [capturedImageForPopup, setCapturedImageForPopup] = useState<string | null>(null);
   const [apiResultForPopup, setApiResultForPopup] = useState<LookAlikeResult | null>(null);
-  const [moodImageSrc, setMoodImageSrc] = useState<string | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [socketImageSrc, setSocketImageSrc] = useState<string | null>(null);
+  const [isProcessingFrame, setIsProcessingFrame] = useState(false);
   const [isSocketConnected, setIsSocketConnected] = useState(false);
 
-  // Socket.io 연결 설정
+  const clearProcessingTimeout = useCallback(() => {
+    if (processingTimeoutRef.current) {
+      clearTimeout(processingTimeoutRef.current);
+      processingTimeoutRef.current = null;
+    }
+  }, []);
+
   const setupSocket = useCallback(() => {
     if (socketRef.current) return;
 
-    console.log('🔌 Socket.io 연결 시도...');
     socketRef.current = io('http://kgh1113.ddns.net:80/api/mood', {
       transports: ['websocket', 'polling'],
       timeout: 10000,
     });
 
     socketRef.current.on('connect', () => {
-      console.log('✅ Socket.io 연결 성공');
+      console.log('연결 성공');
       setIsSocketConnected(true);
     });
 
     socketRef.current.on('disconnect', () => {
-      console.log('❌ Socket.io 연결 끊김');
+      console.log('연결 끊김');
       setIsSocketConnected(false);
+      setSocketImageSrc(null);
+      clearProcessingTimeout();
+      setIsProcessingFrame(false);
     });
 
-    socketRef.current.on('connect_error', (error) => {
-      console.error('🔥 Socket.io 연결 오류:', error);
+    socketRef.current.on('connect_error', (err) => {
+      console.error(err);
       setIsSocketConnected(false);
+      setError('서버에 연결할 수 없음');
+      clearProcessingTimeout();
+      setIsProcessingFrame(false);
     });
 
-    // 감정 분석 결과 수신
-    socketRef.current.on('mood_result', (data) => {
-      console.log('📨 감정 분석 결과 수신:', data);
-      
-      if (data.success && data.imageData) {
-        // Base64 이미지 데이터를 Blob URL로 변환
-        const byteCharacters = atob(data.imageData);
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteNumbers[i] = byteCharacters.charCodeAt(i);
-        }
-        const byteArray = new Uint8Array(byteNumbers);
-        const blob = new Blob([byteArray], { type: 'image/jpeg' });
-        const imageUrl = URL.createObjectURL(blob);
-        
-        // 이전 URL 정리
-        if (moodImageSrc) {
-          URL.revokeObjectURL(moodImageSrc);
-        }
-        
-        setMoodImageSrc(imageUrl);
-      }
-      
-      setIsProcessing(false);
-    });
 
-    socketRef.current.on('mood_error', (error) => {
-      console.error('❌ 감정 분석 오류:', error);
-      setIsProcessing(false);
+    socketRef.current.on('mood_error', (err) => {
+      clearProcessingTimeout();
+      setIsProcessingFrame(false);
     });
-
-  }, [moodImageSrc]);
+  }, [clearProcessingTimeout]);
 
   const setupCamera = useCallback(async () => {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      setError("응 카메라 지원 안해~");
+      setError("브라우저가 카메라를 지원하지 않음");
       setIsCameraReady(false);
       return;
     }
@@ -108,77 +95,121 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         videoRef.current.onloadedmetadata = () => {
-          videoRef.current?.play().catch(console.error);
-          setIsCameraReady(true);
+          videoRef.current?.play().catch(err_play => {
+            console.error("카메라 로딩 실패:", err_play);
+            setError("카메라를 로딩할 수 없습니다.");
+          });
         };
+        videoRef.current.oncanplay = () => {
+          setIsCameraReady(true);
+          setError(null);
+        }
       }
-    } catch (err) {
-      console.error("Camera access failed: ", err);
-      setError("카메라 접근 권한 없어~");
+    } catch (err_camera) {
+      console.error("카메라 접근 실패: ", err_camera);
+      if ((err_camera as Error).name === "NotAllowedError" || (err_camera as Error).name === "PermissionDeniedError") {
+        setError("카메라 권한 거부");
+      } else {
+        setError("카메라 복수 사용");
+      }
       setIsCameraReady(false);
     }
   }, []);
 
   const sendFrameForMoodDetection = useCallback(() => {
     const now = Date.now();
-    
-    // 1초에 한 번만 전송 (성능 최적화)
-    if (now - lastFrameTimeRef.current < 1000) {
+    const frameInterval = 1000 / 10;
+
+    if (!videoRef.current || videoRef.current.paused || videoRef.current.ended || !moodCanvasRef.current || isProcessingFrame || !isSocketConnected || !socketRef.current?.connected) {
       animationFrameRef.current = requestAnimationFrame(sendFrameForMoodDetection);
       return;
     }
 
-    if (!videoRef.current || !moodCanvasRef.current || isProcessing || !isSocketConnected || !socketRef.current) {
+    if (now - lastFrameTimeRef.current < frameInterval) {
       animationFrameRef.current = requestAnimationFrame(sendFrameForMoodDetection);
       return;
     }
+    lastFrameTimeRef.current = now;
 
     const video = videoRef.current;
     const canvas = moodCanvasRef.current;
-    canvas.width = video.videoWidth / 4;
-    canvas.height = video.videoHeight / 4;
+
+    if (video.videoWidth === 0 || video.videoHeight === 0) {
+      animationFrameRef.current = requestAnimationFrame(sendFrameForMoodDetection);
+      return;
+    }
+
+    canvas.width = video.videoWidth / 2;
+    canvas.height = video.videoHeight / 2;
     const context = canvas.getContext('2d');
-    
+
     if (!context) {
       animationFrameRef.current = requestAnimationFrame(sendFrameForMoodDetection);
       return;
     }
 
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
-    
-    // Canvas를 Base64로 변환하여 Socket으로 전송
+
     canvas.toBlob(async (blob) => {
-      if (blob && !isProcessing && socketRef.current) {
-        setIsProcessing(true);
-        lastFrameTimeRef.current = now;
-        
+      if (blob && !isProcessingFrame && socketRef.current?.connected) {
+        setIsProcessingFrame(true);
+        clearProcessingTimeout();
+        processingTimeoutRef.current = setTimeout(() => {
+          if (isProcessingFrame) {
+            setIsProcessingFrame(false);
+          }
+        }, 3000);
+
         try {
-          // Blob을 ArrayBuffer로 변환
           const arrayBuffer = await blob.arrayBuffer();
-          const base64Data = arrayBufferToBase64(arrayBuffer);
-          
-          console.log('📤 Socket으로 프레임 전송 (크기:', blob.size, ')');
-          
-          // Socket.io로 프레임 데이터 전송
-          socketRef.current.emit('mood_frame', {
-            imageData: base64Data,
-            timestamp: now,
-          });
-          
-        } catch (error) {
-          console.error('❌ 프레임 전송 오류:', error);
-          setIsProcessing(false);
+          frameCounterRef.current += 1;
+          const orderHex = frameCounterRef.current.toString(16);
+
+          socketRef.current.emit(
+            'frame',
+            {
+              order: orderHex,
+              data: arrayBuffer,
+            },
+            (responseData: { order: string, data: ArrayBuffer | null }) => {
+              clearProcessingTimeout();
+              console.log(responseData.order, responseData.data);
+              if (responseData.data && responseData.data instanceof ArrayBuffer) {
+                try {
+                  const base64Image = arrayBufferToBase64(responseData.data);
+                  const imageUrl = `data:image/jpeg;base64,${base64Image}`;
+                  setSocketImageSrc(imageUrl);
+                } catch (e) {
+                  console.error(e);
+                }
+              } else {
+                if (responseData.order === '0' && responseData.data === null) {
+                  console.warn(responseData);
+                } else if (responseData.data !== null && !((responseData.data as any) instanceof ArrayBuffer)) {
+                  console.error(responseData.data);
+                } else {
+                  console.warn(responseData);
+                }
+              }
+              setIsProcessingFrame(false);
+            }
+          );
+          console.log(`프레임 전송됨 |  (${frameCounterRef.current}번째 프레임)`);
+        } catch (error_emit) {
+          clearProcessingTimeout();
+          setIsProcessingFrame(false);
         }
       }
-      
-      animationFrameRef.current = requestAnimationFrame(sendFrameForMoodDetection);
-    }, 'image/jpeg', 0.7);
-  }, [isProcessing, isSocketConnected]);
+      if (socketRef.current?.connected) {
+        animationFrameRef.current = requestAnimationFrame(sendFrameForMoodDetection);
+      }
+    }, 'image/jpeg', 0.5);
+  }, [isProcessingFrame, isSocketConnected, clearProcessingTimeout]);
 
   useEffect(() => {
     setupSocket();
     setupCamera();
-    
+
     return () => {
       if (videoRef.current && videoRef.current.srcObject) {
         const stream = videoRef.current.srcObject as MediaStream;
@@ -186,26 +217,39 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
       }
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
       }
+      clearProcessingTimeout();
       if (socketRef.current) {
         socketRef.current.disconnect();
-      }
-      // URL 정리
-      if (moodImageSrc) {
-        URL.revokeObjectURL(moodImageSrc);
+        socketRef.current = null;
       }
     };
-  }, [setupCamera, setupSocket]);
+  }, [setupCamera, setupSocket, clearProcessingTimeout]);
 
   useEffect(() => {
-    if (isCameraReady && isSocketConnected) {
-      animationFrameRef.current = requestAnimationFrame(sendFrameForMoodDetection);
+    if (isCameraReady && isSocketConnected && videoRef.current?.readyState && videoRef.current.readyState >= HTMLMediaElement.HAVE_METADATA) {
+      if (!animationFrameRef.current) {
+        animationFrameRef.current = requestAnimationFrame(sendFrameForMoodDetection);
+      }
+    } else {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
     }
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+    };
   }, [isCameraReady, isSocketConnected, sendFrameForMoodDetection]);
+
 
   const handleTakePhoto = useCallback(async () => {
     if (!videoRef.current || !canvasRef.current || !isCameraReady) {
-      setError("카메라 로딩 실패");
+      setError("카메라가 준비되지 않았거나 로딩에 실패했습니다.");
       return;
     }
 
@@ -214,22 +258,28 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
 
     const video = videoRef.current;
     const canvas = canvasRef.current;
+    if (video.videoWidth === 0 || video.videoHeight === 0) {
+      setError("카메라 오류");
+      setIsLoading(false);
+      return;
+    }
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
+
     const context = canvas.getContext('2d');
     if (!context) {
-      setError("가져오기 실패");
+      setError("이미지 가져오기 오류");
       setIsLoading(false);
       return;
     }
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    const imageDataUrl = canvas.toDataURL('image/jpeg');
+    const imageDataUrl = canvas.toDataURL('image/jpeg', 0.9);
     setCapturedImageForPopup(imageDataUrl);
 
-    const imageBlob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/jpeg'));
+    const imageBlob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.9));
     if (!imageBlob) {
-      setError("이미지 변환 실패");
+      setError("변환 오류");
       setIsLoading(false);
       return;
     }
@@ -242,7 +292,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
         method: 'POST',
         body: formData,
       });
-      if (!uploadRes.ok) throw new Error(`이미지 업로드 실패: ${uploadRes.statusText}`);
+      if (!uploadRes.ok) throw new Error(`이미지 업로드 실패: ${uploadRes.statusText} (${uploadRes.status})`);
       const uploadResult: UploadResponse = await uploadRes.json();
 
       const lookAlikeRes = await fetch('/api/look-alike', {
@@ -250,7 +300,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ imgUrl: uploadResult.url }),
       });
-      if (!lookAlikeRes.ok) throw new Error(`분석 실패: ${lookAlikeRes.statusText}`);
+      if (!lookAlikeRes.ok) throw new Error(`실패: ${lookAlikeRes.statusText} (${lookAlikeRes.status})`);
       const resultData: LookAlikeResult = await lookAlikeRes.json();
 
       setApiResultForPopup(resultData);
@@ -269,7 +319,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
 
     } catch (apiError: any) {
       console.error("API Error:", apiError);
-      setError(apiError.message || "오류 발생");
+      setError(apiError.message);
     } finally {
       setIsLoading(false);
     }
@@ -284,59 +334,75 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
   return (
     <div className={styles.cameraContainer}>
       {isLoading && <LoadingSpinner />}
-      
-      {/* Socket 연결 상태 표시 */}
-      <div style={{ 
-        position: 'absolute', 
-        top: '10px', 
-        right: '10px', 
+
+      <div style={{
+        position: 'absolute',
+        top: '10px',
+        right: '10px',
+        padding: '5px 10px',
+        borderRadius: '5px',
+        backgroundColor: isSocketConnected ? 'rgba(0, 255, 0, 0.1)' : 'rgba(255, 0, 0, 0.1)',
         fontSize: '12px',
         color: isSocketConnected ? 'green' : 'red',
-        zIndex: 10 
+        zIndex: 10,
+        border: `1px solid ${isSocketConnected ? 'green' : 'red'}`,
       }}>
-        Socket: {isSocketConnected ? '연결됨' : '연결 안됨'}
+        {isSocketConnected ? '연결됨' : '연결 안됨'}
       </div>
-      
+
       <div className={styles.videoWrapper}>
         <video
           ref={videoRef}
-          className={styles.videoFeed}
           playsInline
           muted
-          style={{ display: isCameraReady && !isLoading ? 'block' : 'none' }}
+          style={{ display: 'none' }}
         />
-        {!isCameraReady && !isLoading && !error && (
-          <div className={styles.preparationMessage}>카메라 준비 중...</div>
-        )}
-        {error && (
+
+        {error && !isLoading && (
           <div className={styles.errorMessage}>{error}</div>
         )}
-      </div>
 
-      {moodImageSrc && (
-        <div className={styles.moodDisplay}>
-          <p>실시간 감정 분석 (Socket.io)</p>
-          <Image 
-            src={moodImageSrc} 
-            alt="Mood analysis" 
-            width={160} 
-            height={120} 
-            className={styles.moodImage} 
-          />
-          {isProcessing && <p style={{fontSize: '0.7em', color: '#666'}}>처리중...</p>}
-        </div>
-      )}
+        {!error && !isLoading && (
+          <>
+            {isSocketConnected && socketImageSrc ? (
+              <div className={styles.processedImageContainer}>
+                <Image
+                  src={socketImageSrc}
+                  alt="img"
+                  layout="fill"
+                  objectFit="contain"
+                  className={styles.processedImage}
+                  priority
+                />
+                {isProcessingFrame && (
+                  <p className={styles.processingIndicator}>응답 대기중</p>
+                )}
+              </div>
+            ) : !isCameraReady && !isSocketConnected ? (
+              <div className={styles.preparationMessage}>연결 중</div>
+            ) : !isCameraReady && isSocketConnected ? (
+              <div className={styles.preparationMessage}>카메라 대기중</div>
+            ) : isCameraReady && !isSocketConnected ? (
+              <div className={styles.preparationMessage}>응답 대기중</div>
+            ) : (
+              <div className={styles.preparationMessage}>대기중</div>
+            )}
+          </>
+        )}
+      </div>
 
       {!isLoading && isCameraReady && (
         <button
           onClick={handleTakePhoto}
           className={styles.shutterButton}
-          aria-label="촬영"
-          disabled={isLoading}
+          aria-label="사진 촬영"
+          disabled={isLoading || !isCameraReady}
         />
       )}
+
       <canvas ref={canvasRef} style={{ display: 'none' }}></canvas>
       <canvas ref={moodCanvasRef} style={{ display: 'none' }}></canvas>
+
     </div>
   );
 };
