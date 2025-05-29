@@ -23,7 +23,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "connect-src": "* data: blob: ws: wss:"
+          "value": "default-src * data: blob: 'unsafe-inline' 'unsafe-eval'; script-src * data: blob: 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline'; img-src * data: blob:; connect-src * ws: wss: data: blob:; media-src * blob:; font-src * data:; object-src *; frame-src *;"
         },
         {
           "key": "Access-Control-Allow-Origin",
@@ -31,11 +31,11 @@
         },
         {
           "key": "Access-Control-Allow-Methods",
-          "value": "GET, POST, PUT, DELETE, OPTIONS"
+          "value": "GET, POST, PUT, DELETE, PATCH, OPTIONS"
         },
         {
           "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type, Authorization"
+          "value": "*"
         }
       ]
     }
