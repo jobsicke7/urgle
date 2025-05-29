@@ -60,26 +60,29 @@ const HistoryList: React.FC<HistoryListProps> = ({ items }) => {
           } else {
             return (
               <li key={item.id} className={styles.listItem} style={{ position: 'relative' }}>
-                {item.imgUrl && (
+                <div className={styles.imageRow}>
+                  {item.imgUrl && (
+                    <div className={styles.imageWrapper}>
+                      <Image
+                        src={item.imgUrl}
+                        alt="원본"
+                        width={60}
+                        height={60}
+                        className={styles.historyImage}
+                      />
+                    </div>
+                  )}
+                  <span className={styles.arrow}>&rarr;</span>
                   <div className={styles.imageWrapper}>
                     <Image
-                      src={item.imgUrl}
-                      alt="원본"
+                      src={item.resultImgUrl}
+                      alt={item.alike}
                       width={60}
                       height={60}
                       className={styles.historyImage}
+                      unoptimized={item.resultImgUrl.startsWith('http') ? false : true}
                     />
                   </div>
-                )}
-                <div className={styles.imageWrapper}>
-                  <Image
-                    src={item.resultImgUrl}
-                    alt={item.alike}
-                    width={60}
-                    height={60}
-                    className={styles.historyImage}
-                    unoptimized={item.resultImgUrl.startsWith('http') ? false : true}
-                  />
                 </div>
                 <div className={styles.info}>
                   <span className={styles.celebrityName}>{item.alike}</span>
