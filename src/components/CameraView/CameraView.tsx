@@ -266,9 +266,9 @@ const handleTakePhoto = useCallback(async () => {
     setApiResultForPopup(null);
   };
 
-  if (error && !isLoading) {
-    return <div className={styles.errorMessage}>{error}</div>;
-  }
+  // if (error && !isLoading) {
+  //   return <div className={styles.errorMessage}>{error}</div>;
+  // }
   
   return (
     <div className={styles.cameraContainer}>
