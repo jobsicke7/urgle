@@ -374,9 +374,6 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
                   className={styles.processedImage}
                   priority
                 />
-                {isProcessingFrame && (
-                  <p className={styles.processingIndicator}>응답 대기중</p>
-                )}
               </div>
             ) : !isCameraReady && !isSocketConnected ? (
               <div className={styles.preparationMessage}>연결 중</div>
