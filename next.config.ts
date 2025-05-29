@@ -17,29 +17,13 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/socket.io/:path*',
-        destination: 'http://kgh1113.ddns.net/socket.io/:path*',
+        destination: 'http://kgh1113.ddns.net:80/socket.io/:path*',
       },
       {
         source: '/api/mood/socket.io/:path*',
-        destination: 'http://kgh1113.ddns.net/api/mood/socket.io/:path*',
+        destination: 'http://kgh1113.ddns.net:80/api/mood/socket.io/:path*',
       }
     ];
-  },
-  async redirects() {
-    return [
-      {
-        source: '/:path*',
-        has: [
-          {
-            type: 'header',
-            key: 'x-forwarded-proto',
-            value: 'http',
-          },
-        ],
-        destination: 'https://www.jobsickes.shop/:path*',
-        permanent: true,
-      },
-    ]
   },
   async headers() {
     return [
