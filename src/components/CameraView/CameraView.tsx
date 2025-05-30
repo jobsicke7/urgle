@@ -91,34 +91,30 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
       return;
     }
     try {
-      // 최대 해상도 설정을 위한 제약 조건
       const constraints = {
         video: {
           width: { ideal: 4096, max: 4096 },
           height: { ideal: 2160, max: 2160 },
-          facingMode: 'user', // 전면 카메라 (셀카)
+          facingMode: 'user',
           frameRate: { ideal: 30, max: 60 },
-          // HDR 지원 시도
           aspectRatio: { ideal: 16/9 }
         }
       };
 
       let stream: MediaStream;
     
-      // 대안 1: 4K 해상도
       try {
         stream = await navigator.mediaDevices.getUserMedia({
           video: {
-            width: { ideal: 2560, max: 2560 },
-            height: { ideal: 1440, max: 1440 },
+            width: { ideal: 3840, max: 3840 },
+            height: { ideal: 2160, max: 2160 },
             facingMode: 'user',
             frameRate: { ideal: 30 }
           }
         });
       } catch (fourKError) {
-        console.warn("4K 해상도 실패, 1080p로 시도:", fourKError);
+        console.warn(":", fourKError);
         
-        // 대안 2: 1080p 해상도
         try {
           stream = await navigator.mediaDevices.getUserMedia({
             video: {
@@ -129,9 +125,8 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
             }
           });
         } catch (hdError) {
-          console.warn("1080p 해상도 실패, 720p로 시도:", hdError);
+          console.warn(":", hdError);
           
-          // 대안 3: 720p 해상도
           stream = await navigator.mediaDevices.getUserMedia({
             video: {
               width: { ideal: 1280, max: 1280 },
