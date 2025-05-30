@@ -180,7 +180,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
 
   const sendFrameForMoodDetection = useCallback(() => {
     const now = Date.now();
-    const frameInterval = 1000 / 60;
+    const frameInterval = 1000 / 30;
 
     if (!videoRef.current || videoRef.current.paused || videoRef.current.ended || !moodCanvasRef.current || isProcessingFrame || !isSocketConnected || !socketRef.current?.connected) {
       animationFrameRef.current = requestAnimationFrame(sendFrameForMoodDetection);
