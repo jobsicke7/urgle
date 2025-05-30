@@ -91,15 +91,77 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
       return;
     }
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      // 최대 해상도 설정을 위한 제약 조건
+      const constraints = {
+        video: {
+          width: { ideal: 4096, max: 4096 },
+          height: { ideal: 2160, max: 2160 },
+          facingMode: 'user', // 전면 카메라 (셀카)
+          frameRate: { ideal: 30, max: 60 },
+          // HDR 지원 시도
+          aspectRatio: { ideal: 16/9 }
+        }
+      };
+
+      let stream: MediaStream;
+      
+      try {
+        // 먼저 최고 해상도로 시도
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+      } catch (highResError) {
+        console.warn("최고 해상도 실패, 대안으로 시도:", highResError);
+        
+        // 대안 1: 4K 해상도
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              width: { ideal: 3840, max: 3840 },
+              height: { ideal: 2160, max: 2160 },
+              facingMode: 'user',
+              frameRate: { ideal: 30 }
+            }
+          });
+        } catch (fourKError) {
+          console.warn("4K 해상도 실패, 1080p로 시도:", fourKError);
+          
+          // 대안 2: 1080p 해상도
+          try {
+            stream = await navigator.mediaDevices.getUserMedia({
+              video: {
+                width: { ideal: 1920, max: 1920 },
+                height: { ideal: 1080, max: 1080 },
+                facingMode: 'user',
+                frameRate: { ideal: 30 }
+              }
+            });
+          } catch (hdError) {
+            console.warn("1080p 해상도 실패, 720p로 시도:", hdError);
+            
+            // 대안 3: 720p 해상도
+            stream = await navigator.mediaDevices.getUserMedia({
+              video: {
+                width: { ideal: 1280, max: 1280 },
+                height: { ideal: 720, max: 720 },
+                facingMode: 'user'
+              }
+            });
+          }
+        }
+      }
+
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        
         videoRef.current.onloadedmetadata = () => {
+          const video = videoRef.current!;
+          console.log(`카메라 해상도: ${video.videoWidth}x${video.videoHeight}`);
+          
           videoRef.current?.play().catch(err_play => {
             console.error("카메라 로딩 실패:", err_play);
             setError("카메라를 로딩할 수 없습니다.");
           });
         };
+        
         videoRef.current.oncanplay = () => {
           setIsCameraReady(true);
           setError(null);
@@ -115,6 +177,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
       setIsCameraReady(false);
     }
   }, []);
+
 
   const sendFrameForMoodDetection = useCallback(() => {
     const now = Date.now();
