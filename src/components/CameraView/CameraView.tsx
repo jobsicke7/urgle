@@ -154,7 +154,6 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
         
         videoRef.current.onloadedmetadata = () => {
           const video = videoRef.current!;
-          console.log(`카메라 해상도: ${video.videoWidth}x${video.videoHeight}`);
           
           videoRef.current?.play().catch(err_play => {
             console.error("카메라 로딩 실패:", err_play);
@@ -236,7 +235,6 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
             },
             (responseData: { order: string, data: ArrayBuffer | null }) => {
               clearProcessingTimeout();
-              console.log(responseData.order, responseData.data);
               if (responseData.data && responseData.data instanceof ArrayBuffer) {
                 try {
                   const base64Image = arrayBufferToBase64(responseData.data);
@@ -257,7 +255,6 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
               setIsProcessingFrame(false);
             }
           );
-          console.log(`프레임 전송됨 |  (${frameCounterRef.current}번째 프레임)`);
         } catch (error_emit) {
           clearProcessingTimeout();
           setIsProcessingFrame(false);
