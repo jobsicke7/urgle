@@ -66,8 +66,8 @@ const HistoryList: React.FC<HistoryListProps> = ({ items }) => {
                       <Image
                         src={item.imgUrl}
                         alt="원본"
-                        width={60}
-                        height={60}
+                        width={1200}
+                        height={1200}
                         className={styles.historyImage}
                       />
                     </div>
@@ -77,8 +77,8 @@ const HistoryList: React.FC<HistoryListProps> = ({ items }) => {
                     <Image
                       src={item.resultImgUrl}
                       alt={item.alike}
-                      width={60}
-                      height={60}
+                      width={1200}
+                      height={1200}
                       className={styles.historyImage}
                       unoptimized={item.resultImgUrl.startsWith('http') ? false : true}
                     />
