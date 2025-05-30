@@ -154,6 +154,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
         
         videoRef.current.onloadedmetadata = () => {
           const video = videoRef.current!;
+          console.log(`${video.videoWidth}x${video.videoHeight}`);
           
           videoRef.current?.play().catch(err_play => {
             console.error("카메라 로딩 실패:", err_play);
@@ -180,7 +181,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
 
   const sendFrameForMoodDetection = useCallback(() => {
     const now = Date.now();
-    const frameInterval = 1000 / 30;
+    const frameInterval = 1000 / 10;
 
     if (!videoRef.current || videoRef.current.paused || videoRef.current.ended || !moodCanvasRef.current || isProcessingFrame || !isSocketConnected || !socketRef.current?.connected) {
       animationFrameRef.current = requestAnimationFrame(sendFrameForMoodDetection);
