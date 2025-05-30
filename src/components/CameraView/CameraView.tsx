@@ -115,8 +115,8 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
         try {
           stream = await navigator.mediaDevices.getUserMedia({
             video: {
-              width: { ideal: 3840, max: 3840 },
-              height: { ideal: 2160, max: 2160 },
+              width: { ideal: 1920, max: 1920 },
+              height: { ideal: 1080, max: 1080 },
               facingMode: 'user',
               frameRate: { ideal: 30 }
             }
