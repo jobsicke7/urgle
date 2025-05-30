@@ -1,10 +1,10 @@
 .historyContainer {
-  padding: 20px;
+  padding: 30px;
   background-color: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  min-width: 500px;
-  max-width: 700px;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  min-width: 600px;
+  max-width: 1000px;
   width: auto;
   flex: 0 0 auto;
   height: 100%;
@@ -15,24 +15,24 @@
 
 @media (max-width: 768px) {
   .historyContainer {
-    min-width: 250px;
-    max-width: 350px;
+    min-width: 400px;
+    max-width: 600px;
   }
 }
 
 @media (max-width: 480px) {
   .historyContainer {
-    min-width: 200px;
-    max-width: 300px;
-    padding: 15px;
+    min-width: 300px;
+    max-width: 450px;
+    padding: 20px;
   }
 }
 
 .title {
-  font-size: 1.8em;
+  font-size: 2.5em;
   color: #333;
   margin-top: 0;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
   font-weight: 800;
 }
 
@@ -46,10 +46,10 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
-  padding: 10px;
+  margin-bottom: 25px;
+  padding: 20px;
   border: 1px solid #e0e0e0;
-  border-radius: 6px;
+  border-radius: 10px;
   background-color: #f9f9f9;
   transition: all 0.3s ease;
 }
@@ -58,18 +58,18 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px;
-  border: 2px solid #5b9bd5;
+  padding: 35px;
+  border: 3px solid #5b9bd5;
   background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
-  box-shadow: 0 4px 12px rgba(91, 155, 213, 0.2);
+  box-shadow: 0 6px 18px rgba(91, 155, 213, 0.2);
   transform: scale(1.02);
-  margin-bottom: 40px;
+  margin-bottom: 50px;
 }
 
 .imageRow {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 25px;
 }
 
 .latestImageRow {
@@ -77,46 +77,48 @@
   justify-content: center;
   align-items: center;
   width: 100%;
-  margin-bottom: 20px;
-  gap: 10px;
+  margin-bottom: 30px;
+  gap: 20px;
 }
 
 .latestImageContainer {
-  width: 120px;
-  height: 120px;
+  width: 180px;
+  height: 180px;
   position: relative;
   background-color: #e0e0e0;
-  border-radius: 8px;
+  border-radius: 12px;
   flex-shrink: 0;
 }
 
 @media (max-width: 480px) {
   .latestImageContainer {
-    width: 100px;
-    height: 100px;
+    width: 140px;
+    height: 140px;
   }
 }
 
 .historyImage {
-  border-radius: 4px;
+  border-radius: 8px;
   object-fit: cover;
+  width: 150px;  /* 원하는 크기 */
+  height: 150px; /* 원하는 크기 */
 }
 
 .historyImage.latest {
-  border-radius: 8px;
-  border: 2px solid #5b9bd5;
-  box-shadow: 0 2px 8px rgba(91, 155, 213, 0.3);
+  border-radius: 12px;
+  border: 3px solid #5b9bd5;
+  box-shadow: 0 4px 12px rgba(91, 155, 213, 0.3);
 }
 
 .arrow {
-  font-size: 1.2em;
+  font-size: 1.8em;
   color: #777;
   font-weight: bold;
   flex-shrink: 0;
 }
 
 .arrow.latest {
-  font-size: 2.2em;
+  font-size: 3.5em;
   color: #5b9bd5;
   font-weight: bold;
 }
@@ -131,25 +133,25 @@
 
 .info.latestInfo .celebrityName.latest,
 .celebrityName.latest {
-  font-size: 1.3em;
+  font-size: 2em;
   font-weight: 700;
   color: #2c5282;
-  margin-bottom: 6px;
+  margin-bottom: 10px;
   text-align: center; 
   word-wrap: break-word;
 }
 
 .info.latestInfo .percentage.latest,
 .percentage.latest {
-  font-size: 1.1em;
+  font-size: 1.6em;
   color: #1a365d;
   font-weight: bold;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
 }
 
 .info.latestInfo .date.latest,
 .date.latest {
-  font-size: 0.85em;
+  font-size: 1.2em;
   color: #55708c;
   font-weight: 500;
 }
@@ -158,18 +160,18 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  font-size: 0.7rem;
+  font-size: 1rem;
   color: #555;
   flex-shrink: 0;
 }
 
 .imageWrapper.latest {
-  font-size: 0.8rem;
+  font-size: 1.2rem;
   font-weight: 600;
 }
 
 .imageLabel {
-  margin-top: 3px;
+  margin-top: 5px;
 }
 
 .imageLabel.latest {
@@ -187,39 +189,40 @@
 }
 
 .celebrityName {
-  font-size: 1em;
+  font-size: 1.4em;
   color: #333;
   font-weight: 500;
   word-wrap: break-word; 
 }
 
 .percentage {
-  font-size: 0.9em;
+  font-size: 1.2em;
   color: #5b9bd5;
   font-weight: bold;
 }
 
 .date {
-  font-size: 0.8em;
+  font-size: 1em;
   color: #777;
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
 .latestBadge {
   position: absolute;
-  top: -5px;
-  right: -5px;
+  top: -8px;
+  right: -8px;
   background: linear-gradient(45deg, #ff6b6b, #feca57);
   color: white;
-  font-size: 0.7em;
+  font-size: 1em;
   font-weight: bold;
-  padding: 2px 6px;
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  padding: 4px 10px;
+  border-radius: 15px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .emptyMessage {
   color: #777;
   text-align: center;
-  padding: 20px 0;
+  padding: 30px 0;
+  font-size: 1.2em;
 }
