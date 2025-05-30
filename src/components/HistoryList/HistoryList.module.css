@@ -58,7 +58,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 35px;
+  padding: 20px;
   border: 3px solid #5b9bd5;
   background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
   box-shadow: 0 6px 18px rgba(91, 155, 213, 0.2);
@@ -78,12 +78,12 @@
   align-items: center;
   width: 100%;
   margin-bottom: 30px;
-  gap: 20px;
+  gap: 10px;
 }
 
 .latestImageContainer {
-  width: 180px;
-  height: 180px;
+  width: 225px;
+  height: 225px;
   position: relative;
   background-color: #e0e0e0;
   border-radius: 12px;
@@ -108,6 +108,8 @@
   border-radius: 12px;
   border: 3px solid #5b9bd5;
   box-shadow: 0 4px 12px rgba(91, 155, 213, 0.3);
+  width: 400px;  /* 원하는 크기 */
+  height: 400px; /* 원하는 크기 */
 }
 
 .arrow {
@@ -118,7 +120,7 @@
 }
 
 .arrow.latest {
-  font-size: 3.5em;
+  font-size: 2.5em;
   color: #5b9bd5;
   font-weight: bold;
 }
