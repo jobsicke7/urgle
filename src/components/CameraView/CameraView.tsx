@@ -30,6 +30,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
   const socketRef = useRef<Socket | null>(null);
   const frameCounterRef = useRef<number>(0);
   const processingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isFrameLoopRunningRef = useRef<boolean>(false);
 
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -76,7 +77,6 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
       clearProcessingTimeout();
       setIsProcessingFrame(false);
     });
-
 
     socketRef.current.on('mood_error', (err) => {
       clearProcessingTimeout();
@@ -135,7 +135,6 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
             }
           });
         }
-        
       }
 
       if (videoRef.current) {
@@ -167,107 +166,121 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
     }
   }, []);
 
+  const startFrameLoop = useCallback(() => {
+    if (isFrameLoopRunningRef.current) return;
+    isFrameLoopRunningRef.current = true;
+    
+    const frameLoop = () => {
+      if (!isFrameLoopRunningRef.current) return;
+      
+      const now = Date.now();
+      const frameInterval = 1000 / 10;
 
-  const sendFrameForMoodDetection = useCallback(() => {
-    const now = Date.now();
-    const frameInterval = 1000 / 10;
+      if (!videoRef.current || videoRef.current.paused || videoRef.current.ended || !moodCanvasRef.current || !isSocketConnected || !socketRef.current?.connected) {
+        animationFrameRef.current = requestAnimationFrame(frameLoop);
+        return;
+      }
 
-    if (!videoRef.current || videoRef.current.paused || videoRef.current.ended || !moodCanvasRef.current || isProcessingFrame || !isSocketConnected || !socketRef.current?.connected) {
-      animationFrameRef.current = requestAnimationFrame(sendFrameForMoodDetection);
-      return;
-    }
+      if (now - lastFrameTimeRef.current < frameInterval) {
+        animationFrameRef.current = requestAnimationFrame(frameLoop);
+        return;
+      }
+      lastFrameTimeRef.current = now;
 
-    if (now - lastFrameTimeRef.current < frameInterval) {
-      animationFrameRef.current = requestAnimationFrame(sendFrameForMoodDetection);
-      return;
-    }
-    lastFrameTimeRef.current = now;
+      const video = videoRef.current;
+      const canvas = moodCanvasRef.current;
 
-    const video = videoRef.current;
-    const canvas = moodCanvasRef.current;
+      if (video.videoWidth === 0 || video.videoHeight === 0) {
+        animationFrameRef.current = requestAnimationFrame(frameLoop);
+        return;
+      }
 
-    if (video.videoWidth === 0 || video.videoHeight === 0) {
-      animationFrameRef.current = requestAnimationFrame(sendFrameForMoodDetection);
-      return;
-    }
+      canvas.width = video.videoWidth / 2;
+      canvas.height = video.videoHeight / 2;
+      const context = canvas.getContext('2d');
 
-    canvas.width = video.videoWidth / 2;
-    canvas.height = video.videoHeight / 2;
-    const context = canvas.getContext('2d');
+      if (!context) {
+        animationFrameRef.current = requestAnimationFrame(frameLoop);
+        return;
+      }
 
-    if (!context) {
-      animationFrameRef.current = requestAnimationFrame(sendFrameForMoodDetection);
-      return;
-    }
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    canvas.toBlob(async (blob) => {
-      if (blob && !isProcessingFrame && socketRef.current?.connected) {
-        setIsProcessingFrame(true);
-        clearProcessingTimeout();
-        processingTimeoutRef.current = setTimeout(() => {
-          if (isProcessingFrame) {
-            setIsProcessingFrame(false);
-          }
-        }, 3000);
-
-        try {
-          const arrayBuffer = await blob.arrayBuffer();
-          frameCounterRef.current += 1;
-          const orderHex = frameCounterRef.current.toString(16);
-
-          socketRef.current.emit(
-            'frame',
-            {
-              order: orderHex,
-              data: arrayBuffer,
-            },
-            (responseData: { order: string, data: ArrayBuffer | null }) => {
-              clearProcessingTimeout();
-              if (responseData.data && responseData.data instanceof ArrayBuffer) {
-                try {
-                  const base64Image = arrayBufferToBase64(responseData.data);
-                  const imageUrl = `data:image/jpeg;base64,${base64Image}`;
-                  setSocketImageSrc(imageUrl);
-                } catch (e) {
-                  console.error(e);
-                }
-              } else {
-                if (responseData.order === '0' && responseData.data === null) {
-                  console.warn(responseData);
-                } else if (responseData.data !== null && !((responseData.data as any) instanceof ArrayBuffer)) {
-                  console.error(responseData.data);
-                } else {
-                  console.warn(responseData);
-                }
-              }
+      canvas.toBlob(async (blob) => {
+        if (blob && !isProcessingFrame && socketRef.current?.connected) {
+          setIsProcessingFrame(true);
+          clearProcessingTimeout();
+          processingTimeoutRef.current = setTimeout(() => {
+            if (isProcessingFrame) {
               setIsProcessingFrame(false);
             }
-          );
-        } catch (error_emit) {
-          clearProcessingTimeout();
-          setIsProcessingFrame(false);
+          }, 3000);
+
+          try {
+            const arrayBuffer = await blob.arrayBuffer();
+            frameCounterRef.current += 1;
+            const orderHex = frameCounterRef.current.toString(16);
+
+            socketRef.current.emit(
+              'frame',
+              {
+                order: orderHex,
+                data: arrayBuffer,
+              },
+              (responseData: { order: string, data: ArrayBuffer | null }) => {
+                clearProcessingTimeout();
+                if (responseData.data && responseData.data instanceof ArrayBuffer) {
+                  try {
+                    const base64Image = arrayBufferToBase64(responseData.data);
+                    const imageUrl = `data:image/jpeg;base64,${base64Image}`;
+                    setSocketImageSrc(imageUrl);
+                  } catch (e) {
+                    console.error(e);
+                  }
+                } else {
+                  if (responseData.order === '0' && responseData.data === null) {
+                    console.warn(responseData);
+                  } else if (responseData.data !== null && !((responseData.data as any) instanceof ArrayBuffer)) {
+                    console.error(responseData.data);
+                  } else {
+                    console.warn(responseData);
+                  }
+                }
+                setIsProcessingFrame(false);
+              }
+            );
+          } catch (error_emit) {
+            clearProcessingTimeout();
+            setIsProcessingFrame(false);
+          }
         }
+      }, 'image/jpeg', 0.5);
+
+      if (isFrameLoopRunningRef.current) {
+        animationFrameRef.current = requestAnimationFrame(frameLoop);
       }
-      if (socketRef.current?.connected) {
-        animationFrameRef.current = requestAnimationFrame(sendFrameForMoodDetection);
-      }
-    }, 'image/jpeg', 0.5);
+    };
+
+    animationFrameRef.current = requestAnimationFrame(frameLoop);
   }, [isProcessingFrame, isSocketConnected, clearProcessingTimeout]);
+
+  const stopFrameLoop = useCallback(() => {
+    isFrameLoopRunningRef.current = false;
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+  }, []);
 
   useEffect(() => {
     setupSocket();
     setupCamera();
 
     return () => {
+      stopFrameLoop();
       if (videoRef.current && videoRef.current.srcObject) {
         const stream = videoRef.current.srcObject as MediaStream;
         stream.getTracks().forEach(track => track.stop());
-      }
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-        animationFrameRef.current = null;
       }
       clearProcessingTimeout();
       if (socketRef.current) {
@@ -275,27 +288,19 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
         socketRef.current = null;
       }
     };
-  }, [setupCamera, setupSocket, clearProcessingTimeout]);
+  }, [setupCamera, setupSocket, clearProcessingTimeout, stopFrameLoop]);
 
   useEffect(() => {
     if (isCameraReady && isSocketConnected && videoRef.current?.readyState && videoRef.current.readyState >= HTMLMediaElement.HAVE_METADATA) {
-      if (!animationFrameRef.current) {
-        animationFrameRef.current = requestAnimationFrame(sendFrameForMoodDetection);
-      }
+      startFrameLoop();
     } else {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-        animationFrameRef.current = null;
-      }
+      stopFrameLoop();
     }
-    return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-        animationFrameRef.current = null;
-      }
-    };
-  }, [isCameraReady, isSocketConnected, sendFrameForMoodDetection]);
 
+    return () => {
+      stopFrameLoop();
+    };
+  }, [isCameraReady, isSocketConnected, startFrameLoop, stopFrameLoop]);
 
   const handleTakePhoto = useCallback(async () => {
     if (!videoRef.current || !canvasRef.current || !isCameraReady) {
@@ -372,8 +377,12 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
       setError(apiError.message);
     } finally {
       setIsLoading(false);
+      // 업로드 완료 후 프레임 루프가 계속 실행되도록 보장
+      if (isCameraReady && isSocketConnected && !isFrameLoopRunningRef.current) {
+        startFrameLoop();
+      }
     }
-  }, [isCameraReady, onNewHistoryItem]);
+  }, [isCameraReady, onNewHistoryItem, isSocketConnected, startFrameLoop]);
 
   const handleClosePopup = () => {
     setShowPopup(false);
@@ -384,21 +393,6 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
   return (
     <div className={styles.cameraContainer}>
       {isLoading && <LoadingSpinner />}
-
-      {/* <div style={{
-        position: 'absolute',
-        top: '10px',
-        right: '10px',
-        padding: '5px 10px',
-        borderRadius: '5px',
-        backgroundColor: isSocketConnected ? 'rgba(0, 255, 0, 0.1)' : 'rgba(255, 0, 0, 0.1)',
-        fontSize: '12px',
-        color: isSocketConnected ? 'green' : 'red',
-        zIndex: 10,
-        border: `1px solid ${isSocketConnected ? 'green' : 'red'}`,
-      }}>
-        {isSocketConnected ? '연결됨' : '연결 안됨'}
-      </div> */}
 
       <div className={styles.videoWrapper}>
         <video
