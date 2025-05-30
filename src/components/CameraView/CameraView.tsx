@@ -104,14 +104,21 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
       };
 
       let stream: MediaStream;
-      
+    
+      // 대안 1: 4K 해상도
       try {
-        // 먼저 최고 해상도로 시도
-        stream = await navigator.mediaDevices.getUserMedia(constraints);
-      } catch (highResError) {
-        console.warn("최고 해상도 실패, 대안으로 시도:", highResError);
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            width: { ideal: 1920, max: 1920 },
+            height: { ideal: 1080, max: 1080 },
+            facingMode: 'user',
+            frameRate: { ideal: 30 }
+          }
+        });
+      } catch (fourKError) {
+        console.warn("4K 해상도 실패, 1080p로 시도:", fourKError);
         
-        // 대안 1: 4K 해상도
+        // 대안 2: 1080p 해상도
         try {
           stream = await navigator.mediaDevices.getUserMedia({
             video: {
@@ -121,32 +128,19 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
               frameRate: { ideal: 30 }
             }
           });
-        } catch (fourKError) {
-          console.warn("4K 해상도 실패, 1080p로 시도:", fourKError);
+        } catch (hdError) {
+          console.warn("1080p 해상도 실패, 720p로 시도:", hdError);
           
-          // 대안 2: 1080p 해상도
-          try {
-            stream = await navigator.mediaDevices.getUserMedia({
-              video: {
-                width: { ideal: 1920, max: 1920 },
-                height: { ideal: 1080, max: 1080 },
-                facingMode: 'user',
-                frameRate: { ideal: 30 }
-              }
-            });
-          } catch (hdError) {
-            console.warn("1080p 해상도 실패, 720p로 시도:", hdError);
-            
-            // 대안 3: 720p 해상도
-            stream = await navigator.mediaDevices.getUserMedia({
-              video: {
-                width: { ideal: 1280, max: 1280 },
-                height: { ideal: 720, max: 720 },
-                facingMode: 'user'
-              }
-            });
-          }
+          // 대안 3: 720p 해상도
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              width: { ideal: 1280, max: 1280 },
+              height: { ideal: 720, max: 720 },
+              facingMode: 'user'
+            }
+          });
         }
+        
       }
 
       if (videoRef.current) {
