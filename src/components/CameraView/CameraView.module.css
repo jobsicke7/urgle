@@ -29,16 +29,12 @@
   object-fit: cover;
 }
 
-/* 좌우반전을 위한 새로운 스타일 */
 .processedImageContainer {
   position: relative;
   width: 100%;
   height: 100%;
 }
 
-.processedImage {
-  transform: scaleX(-1); /* 좌우반전 */
-}
 
 .processingIndicator {
   position: absolute;

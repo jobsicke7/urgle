@@ -31,18 +31,15 @@
   overflow: hidden;
 }
 
-/* 카메라 패널 - 남은 공간을 모두 차지하면서 비율 유지 */
 .cameraPanel {
   flex: 1;
   display: flex;
-  min-width: 0; /* flexbox 축소 허용 */
-  min-height: 0;
+  min-width: 0;
 }
 
-/* 히스토리 패널 - 내용에 따라 가로 길이 자동 조절 */
 .historyPanel {
-  flex: 0 0 auto; /* 필요한 만큼만 공간 차지 */
-  display: flex;
+  flex: 0 0 auto; 
+  display: flex;  
   min-width: 0;
 }
 
@@ -61,7 +58,6 @@
   z-index: 100;
 }
 
-/* 태블릿 크기에서의 반응형 */
 @media (max-width: 1024px) {
   .mainContent {
     flex-direction: column;
@@ -87,7 +83,6 @@
   }
 }
 
-/* 모바일 크기에서의 반응형 */
 @media (max-width: 768px) {
   .mainContent {
     padding: 10px;
@@ -103,7 +98,6 @@
   }
 }
 
-/* 작은 모바일 화면 */
 @media (max-width: 480px) {
   .header {
     padding: 8px 15px;
