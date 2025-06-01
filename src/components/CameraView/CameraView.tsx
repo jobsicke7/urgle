@@ -52,7 +52,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
   const setupSocket = useCallback(() => {
     if (socketRef.current) return;
 
-    socketRef.current = io('https://api.jobsickes.shop/api/mood', {
+    socketRef.current = io('https://www.jobsickes.shop/api/mood', {
       transports: ['websocket', 'polling'],
       timeout: 10000,
     });
