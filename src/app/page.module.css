@@ -1,92 +1,120 @@
 .container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  min-height: 100vh;
   background-color: #f0f2f5;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 .header {
-  padding: 10px 20px;
+  padding: 1rem 1.5rem;
   background-color: #ffffff;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   flex-shrink: 0;
+  z-index: 100;
 }
 
 .logo {
-  font-size: 1.6em;
+  font-size: 1.8rem;
   font-weight: bold;
   color: #333;
   margin: 0;
   font-family: 'Arial Black', Gadget, sans-serif;
   letter-spacing: -1px;
+  text-align: center;
 }
 
 .mainContent {
   display: flex;
   flex: 1;
-  padding: 15px;
-  gap: 15px;
+  padding: 1rem;
+  gap: 1rem;
   min-height: 0;
-  overflow: hidden;
+  align-items: stretch;
 }
 
 .cameraPanel {
   flex: 1;
   display: flex;
   min-width: 0;
+  min-height: 400px;
 }
 
 .historyPanel {
-  flex: 0 0 auto; 
-  display: flex;  
+  flex: 0 0 auto;
+  display: flex;
   min-width: 0;
+  width: 600px;
+  max-width: 50vw;
 }
 
 .pageError {
   color: red;
   text-align: center;
-  width: 100%;
-  padding: 8px;
+  width: calc(100% - 2rem);
+  padding: 0.75rem;
   background-color: #ffe0e0;
   border: 1px solid red;
   border-radius: 4px;
-  position: absolute;
-  top: 60px;
-  left: 15px;
-  right: 15px;
-  z-index: 100;
+  position: fixed;
+  top: 80px;
+  left: 1rem;
+  right: 1rem;
+  z-index: 1000;
+  margin: 0 auto;
+  max-width: calc(100vw - 2rem);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 1200px) {
+  .historyPanel {
+    width: 500px;
+    max-width: 45vw;
+  }
 }
 
 @media (max-width: 1024px) {
   .mainContent {
     flex-direction: column;
-    gap: 12px;
+    gap: 1rem;
+    padding: 0.75rem;
   }
   
   .cameraPanel {
     order: 1;
     flex: 1;
     min-height: 350px;
+    width: 100%;
   }
   
   .historyPanel {
     order: 2;
     flex: 0 0 auto;
-    max-height: 40vh;
+    width: 100%;
+    max-width: none;
+    height: 400px;
+    overflow: hidden;
   }
   
   .historyPanel > div {
     width: 100% !important;
     max-width: none !important;
-    overflow-y: auto;
+    height: 100%;
   }
 }
 
 @media (max-width: 768px) {
+  .header {
+    padding: 0.8rem 1rem;
+  }
+  
+  .logo {
+    font-size: 1.6rem;
+  }
+  
   .mainContent {
-    padding: 10px;
-    gap: 10px;
+    padding: 0.5rem;
+    gap: 0.75rem;
   }
   
   .cameraPanel {
@@ -94,22 +122,28 @@
   }
   
   .historyPanel {
-    max-height: 35vh;
+    height: 350px;
+  }
+  
+  .pageError {
+    top: 70px;
+    font-size: 0.8rem;
+    padding: 0.5rem;
   }
 }
 
 @media (max-width: 480px) {
   .header {
-    padding: 8px 15px;
+    padding: 0.6rem 0.75rem;
   }
   
   .logo {
-    font-size: 1.4em;
+    font-size: 1.4rem;
   }
   
   .mainContent {
-    padding: 8px;
-    gap: 8px;
+    padding: 0.4rem;
+    gap: 0.5rem;
   }
   
   .cameraPanel {
@@ -117,6 +151,35 @@
   }
   
   .historyPanel {
-    max-height: 30vh;
+    height: 300px;
+  }
+  
+  .pageError {
+    top: 60px;
+    font-size: 0.75rem;
+    padding: 0.4rem;
+  }
+}
+
+@media (max-width: 320px) {
+  .header {
+    padding: 0.5rem;
+  }
+  
+  .logo {
+    font-size: 1.2rem;
+  }
+  
+  .mainContent {
+    padding: 0.3rem;
+    gap: 0.4rem;
+  }
+  
+  .cameraPanel {
+    min-height: 220px;
+  }
+  
+  .historyPanel {
+    height: 280px;
   }
 }

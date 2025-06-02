@@ -1,53 +1,39 @@
 .historyContainer {
-  padding: 30px;
+  padding: 2rem;
   background-color: #ffffff;
   border-radius: 12px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  min-width: 600px;
-  max-width: 1000px;
-  width: auto;
-  flex: 0 0 auto;
+  width: 100%;
   height: 100%;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-}
-
-@media (max-width: 768px) {
-  .historyContainer {
-    min-width: 400px;
-    max-width: 600px;
-  }
-}
-
-@media (max-width: 480px) {
-  .historyContainer {
-    min-width: 300px;
-    max-width: 450px;
-    padding: 20px;
-  }
+  min-height: 0;
 }
 
 .title {
-  font-size: 2.5em;
+  font-size: 2rem;
   color: #333;
   margin-top: 0;
-  margin-bottom: 30px;
+  margin-bottom: 1.5rem;
   font-weight: 800;
+  text-align: center;
 }
 
 .list {
   list-style: none;
   padding: 0;
   margin: 0;
+  flex: 1;
+  overflow-y: auto;
 }
 
 .listItem {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 25px;
-  padding: 20px;
+  margin-bottom: 1.5rem;
+  padding: 1.25rem;
   border: 1px solid #e0e0e0;
   border-radius: 10px;
   background-color: #f9f9f9;
@@ -58,18 +44,20 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px;
+  padding: 1.25rem;
   border: 3px solid #5b9bd5;
   background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
   box-shadow: 0 6px 18px rgba(91, 155, 213, 0.2);
   transform: scale(1.02);
-  margin-bottom: 50px;
+  margin-bottom: 2rem;
 }
 
 .imageRow {
   display: flex;
   align-items: center;
-  gap: 25px;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .latestImageRow {
@@ -77,50 +65,42 @@
   justify-content: center;
   align-items: center;
   width: 100%;
-  margin-bottom: 30px;
-  gap: 10px;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .latestImageContainer {
-  width: 225px;
-  height: 225px;
+  width: 180px;
+  height: 180px;
   position: relative;
   background-color: #e0e0e0;
   border-radius: 12px;
   flex-shrink: 0;
 }
 
-@media (max-width: 480px) {
-  .latestImageContainer {
-    width: 140px;
-    height: 140px;
-  }
-}
-
 .historyImage {
   border-radius: 8px;
   object-fit: cover;
-  width: 150px;  /* 원하는 크기 */
-  height: 150px; /* 원하는 크기 */
+  width: 120px;
+  height: 120px;
 }
 
 .historyImage.latest {
   border-radius: 12px;
   border: 3px solid #5b9bd5;
   box-shadow: 0 4px 12px rgba(91, 155, 213, 0.3);
-  width: 400px;  /* 원하는 크기 */
-  height: 400px; /* 원하는 크기 */
 }
 
 .arrow {
-  font-size: 1.8em;
+  font-size: 1.5rem;
   color: #777;
   font-weight: bold;
   flex-shrink: 0;
 }
 
 .arrow.latest {
-  font-size: 2.5em;
+  font-size: 2rem;
   color: #5b9bd5;
   font-weight: bold;
 }
@@ -131,29 +111,31 @@
   align-items: center;
   width: 100%;
   margin-top: 0;
+  text-align: center;
 }
 
 .info.latestInfo .celebrityName.latest,
 .celebrityName.latest {
-  font-size: 2em;
+  font-size: 1.5rem;
   font-weight: 700;
   color: #2c5282;
-  margin-bottom: 10px;
-  text-align: center; 
+  margin-bottom: 0.5rem;
+  text-align: center;
   word-wrap: break-word;
+  line-height: 1.2;
 }
 
 .info.latestInfo .percentage.latest,
 .percentage.latest {
-  font-size: 1.6em;
+  font-size: 1.25rem;
   color: #1a365d;
   font-weight: bold;
-  margin-bottom: 15px;
+  margin-bottom: 0.75rem;
 }
 
 .info.latestInfo .date.latest,
 .date.latest {
-  font-size: 1.2em;
+  font-size: 1rem;
   color: #55708c;
   font-weight: 500;
 }
@@ -162,18 +144,19 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  font-size: 1rem;
+  font-size: 0.9rem;
   color: #555;
   flex-shrink: 0;
 }
 
 .imageWrapper.latest {
-  font-size: 1.2rem;
+  font-size: 1rem;
   font-weight: 600;
 }
 
 .imageLabel {
-  margin-top: 5px;
+  margin-top: 0.5rem;
+  text-align: center;
 }
 
 .imageLabel.latest {
@@ -191,22 +174,23 @@
 }
 
 .celebrityName {
-  font-size: 1.4em;
+  font-size: 1.1rem;
   color: #333;
   font-weight: 500;
-  word-wrap: break-word; 
+  word-wrap: break-word;
+  line-height: 1.2;
 }
 
 .percentage {
-  font-size: 1.2em;
+  font-size: 1rem;
   color: #5b9bd5;
   font-weight: bold;
 }
 
 .date {
-  font-size: 1em;
+  font-size: 0.9rem;
   color: #777;
-  margin-top: 6px;
+  margin-top: 0.25rem;
 }
 
 .latestBadge {
@@ -215,9 +199,9 @@
   right: -8px;
   background: linear-gradient(45deg, #ff6b6b, #feca57);
   color: white;
-  font-size: 1em;
+  font-size: 0.8rem;
   font-weight: bold;
-  padding: 4px 10px;
+  padding: 0.25rem 0.5rem;
   border-radius: 15px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
@@ -225,6 +209,284 @@
 .emptyMessage {
   color: #777;
   text-align: center;
-  padding: 30px 0;
-  font-size: 1.2em;
+  padding: 2rem 0;
+  font-size: 1.1rem;
+}
+
+@media (max-width: 1024px) {
+  .historyContainer {
+    padding: 1.5rem;
+  }
+  
+  .title {
+    font-size: 1.8rem;
+    margin-bottom: 1.25rem;
+  }
+  
+  .latestImageContainer {
+    width: 150px;
+    height: 150px;
+  }
+  
+  .historyImage {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .celebrityName.latest {
+    font-size: 1.3rem;
+  }
+  
+  .percentage.latest {
+    font-size: 1.1rem;
+  }
+  
+  .date.latest {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .historyContainer {
+    padding: 1.25rem;
+  }
+  
+  .title {
+    font-size: 1.6rem;
+    margin-bottom: 1rem;
+  }
+  
+  .listItem {
+    padding: 1rem;
+    margin-bottom: 1.25rem;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .listItem.latest {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .imageRow {
+    gap: 1rem;
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .latestImageRow {
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+  
+  .latestImageContainer {
+    width: 120px;
+    height: 120px;
+  }
+  
+  .historyImage {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .arrow {
+    font-size: 1.25rem;
+  }
+  
+  .arrow.latest {
+    font-size: 1.5rem;
+  }
+  
+  .info {
+    align-items: center;
+    text-align: center;
+  }
+  
+  .celebrityName {
+    font-size: 1rem;
+  }
+  
+  .celebrityName.latest {
+    font-size: 1.2rem;
+  }
+  
+  .percentage {
+    font-size: 0.9rem;
+  }
+  
+  .percentage.latest {
+    font-size: 1rem;
+  }
+  
+  .date {
+    font-size: 0.8rem;
+  }
+  
+  .date.latest {
+    font-size: 0.85rem;
+  }
+  
+  .imageWrapper {
+    font-size: 0.8rem;
+  }
+  
+  .imageWrapper.latest {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .historyContainer {
+    padding: 1rem;
+  }
+  
+  .title {
+    font-size: 1.4rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .listItem {
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+  }
+  
+  .listItem.latest {
+    padding: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+  
+  .imageRow {
+    gap: 0.75rem;
+  }
+  
+  .latestImageRow {
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    flex-direction: column;
+  }
+  
+  .latestImageContainer {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .historyImage {
+    width: 70px;
+    height: 70px;
+  }
+  
+  .arrow {
+    font-size: 1rem;
+    transform: rotate(90deg);
+  }
+  
+  .arrow.latest {
+    font-size: 1.25rem;
+    transform: rotate(90deg);
+  }
+  
+  .celebrityName {
+    font-size: 0.9rem;
+  }
+  
+  .celebrityName.latest {
+    font-size: 1.1rem;
+  }
+  
+  .percentage {
+    font-size: 0.8rem;
+  }
+  
+  .percentage.latest {
+    font-size: 0.9rem;
+  }
+  
+  .date {
+    font-size: 0.75rem;
+  }
+  
+  .date.latest {
+    font-size: 0.8rem;
+  }
+  
+  .imageWrapper {
+    font-size: 0.75rem;
+  }
+  
+  .imageWrapper.latest {
+    font-size: 0.8rem;
+  }
+  
+  .emptyMessage {
+    font-size: 1rem;
+    padding: 1.5rem 0;
+  }
+}
+
+@media (max-width: 320px) {
+  .historyContainer {
+    padding: 0.75rem;
+  }
+  
+  .title {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .listItem {
+    padding: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .listItem.latest {
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .latestImageContainer {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .historyImage {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .celebrityName {
+    font-size: 0.8rem;
+  }
+  
+  .celebrityName.latest {
+    font-size: 1rem;
+  }
+  
+  .percentage {
+    font-size: 0.75rem;
+  }
+  
+  .percentage.latest {
+    font-size: 0.85rem;
+  }
+  
+  .date {
+    font-size: 0.7rem;
+  }
+  
+  .date.latest {
+    font-size: 0.75rem;
+  }
+  
+  .imageWrapper {
+    font-size: 0.7rem;
+  }
+  
+  .imageWrapper.latest {
+    font-size: 0.75rem;
+  }
+  
+  .emptyMessage {
+    font-size: 0.9rem;
+    padding: 1rem 0;
+  }
 }

@@ -11,6 +11,7 @@
   right: 0;
   bottom: 0;
   z-index: 10;
+  padding: 1rem;
 }
 
 .spinner {
@@ -33,8 +34,50 @@
 }
 
 .loadingText {
-  margin-top: 15px;
-  font-size: 1em;
+  margin-top: 1rem;
+  font-size: 1rem;
   color: #333;
   font-weight: bold;
+  text-align: center;
+  word-wrap: break-word;
+  hyphens: auto;
+}
+
+@media (max-width: 768px) {
+  .spinner {
+    width: 35px;
+    height: 35px;
+    border-width: 3px;
+  }
+  
+  .loadingText {
+    font-size: 0.9rem;
+    margin-top: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .spinner {
+    width: 30px;
+    height: 30px;
+    border-width: 3px;
+  }
+  
+  .loadingText {
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+  }
+}
+
+@media (max-width: 320px) {
+  .spinner {
+    width: 25px;
+    height: 25px;
+    border-width: 2px;
+  }
+  
+  .loadingText {
+    font-size: 0.75rem;
+    margin-top: 0.4rem;
+  }
 }
