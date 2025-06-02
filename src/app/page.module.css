@@ -73,7 +73,7 @@
   }
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1200px) {
   .mainContent {
     flex-direction: column;
     gap: 1rem;

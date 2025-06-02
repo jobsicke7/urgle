@@ -36,7 +36,7 @@ export default function HomePage() {
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <h1 className={styles.logo}>UR·GLE</h1>
+        <h1 className={styles.logo}>UR·GLE X SPACE</h1>
       </header>
 
       <main className={styles.mainContent}>
