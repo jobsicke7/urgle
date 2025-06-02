@@ -31,6 +31,8 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
   const frameCounterRef = useRef<number>(0);
   const processingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isFrameLoopRunningRef = useRef<boolean>(false);
+  const clickCountRef = useRef<number>(0);
+  const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -41,6 +43,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
   const [socketImageSrc, setSocketImageSrc] = useState<string | null>(null);
   const [isProcessingFrame, setIsProcessingFrame] = useState(false);
   const [isSocketConnected, setIsSocketConnected] = useState(false);
+  const [cameraMode, setCameraMode] = useState<'socket' | 'direct'>('socket');
 
   const clearProcessingTimeout = useCallback(() => {
     if (processingTimeoutRef.current) {
@@ -272,6 +275,21 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
     }
   }, []);
 
+  const handleCameraAreaClick = useCallback(() => {
+    clickCountRef.current += 1;
+
+    if (clickTimeoutRef.current) {
+      clearTimeout(clickTimeoutRef.current);
+    }
+
+    clickTimeoutRef.current = setTimeout(() => {
+      if (clickCountRef.current === 3) {
+        setCameraMode(prev => prev === 'socket' ? 'direct' : 'socket');
+      }
+      clickCountRef.current = 0;
+    }, 500);
+  }, []);
+
   useEffect(() => {
     setupSocket();
     setupCamera();
@@ -287,11 +305,14 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
         socketRef.current.disconnect();
         socketRef.current = null;
       }
+      if (clickTimeoutRef.current) {
+        clearTimeout(clickTimeoutRef.current);
+      }
     };
   }, [setupCamera, setupSocket, clearProcessingTimeout, stopFrameLoop]);
 
   useEffect(() => {
-    if (isCameraReady && isSocketConnected && videoRef.current?.readyState && videoRef.current.readyState >= HTMLMediaElement.HAVE_METADATA) {
+    if (cameraMode === 'socket' && isCameraReady && isSocketConnected && videoRef.current?.readyState && videoRef.current.readyState >= HTMLMediaElement.HAVE_METADATA) {
       startFrameLoop();
     } else {
       stopFrameLoop();
@@ -300,7 +321,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
     return () => {
       stopFrameLoop();
     };
-  }, [isCameraReady, isSocketConnected, startFrameLoop, stopFrameLoop]);
+  }, [isCameraReady, isSocketConnected, startFrameLoop, stopFrameLoop, cameraMode]);
 
   const handleTakePhoto = useCallback(async () => {
     if (!videoRef.current || !canvasRef.current || !isCameraReady) {
@@ -377,12 +398,11 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
       setError(apiError.message);
     } finally {
       setIsLoading(false);
-      // 업로드 완료 후 프레임 루프가 계속 실행되도록 보장
-      if (isCameraReady && isSocketConnected && !isFrameLoopRunningRef.current) {
+      if (cameraMode === 'socket' && isCameraReady && isSocketConnected && !isFrameLoopRunningRef.current) {
         startFrameLoop();
       }
     }
-  }, [isCameraReady, onNewHistoryItem, isSocketConnected, startFrameLoop]);
+  }, [isCameraReady, onNewHistoryItem, isSocketConnected, startFrameLoop, cameraMode]);
 
   const handleClosePopup = () => {
     setShowPopup(false);
@@ -394,19 +414,24 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
     <div className={styles.cameraContainer}>
       {isLoading && <LoadingSpinner />}
 
-      <div className={styles.videoWrapper}>
+      <div className={styles.videoWrapper} onClick={handleCameraAreaClick}>
         <video
           ref={videoRef}
           playsInline
           muted
-          style={{ display: 'none' }}
+          style={{ 
+            display: cameraMode === 'direct' ? 'block' : 'none',
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover'
+          }}
         />
 
         {error && !isLoading && (
           <div className={styles.errorMessage}>{error}</div>
         )}
 
-        {!error && !isLoading && (
+        {!error && !isLoading && cameraMode === 'socket' && (
           <>
             {isSocketConnected && socketImageSrc ? (
               <div className={styles.processedImageContainer}>
