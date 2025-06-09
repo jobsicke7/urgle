@@ -21,6 +21,40 @@ const HistoryList: React.FC<HistoryListProps> = ({ items }) => {
       <h2 className={styles.title}>History</h2>
       <ul className={styles.list}>
         {items.map((item, index) => {
+          const isErrorResult = (alike: string) => {
+            const errorStates = [
+              'BAD_PIC',
+              'NO_FACE_HERE',
+              'CANT_PICK_FACE',
+              'FACE_TOO_SMALL_OR_WEIRD',
+              'EMPTY_CROP',
+              'PROCESSING_FAIL',
+              'NO_MATCH_FOUND'
+            ];
+            return errorStates.includes(alike);
+          };
+
+          // 2. 최신 항목(isLatest = true)의 결과 이미지 부분 수정:
+          <div className={styles.latestImageContainer}>
+            {isErrorResult(item.alike) ? (
+              <Image
+                src="/img/noface.svg"
+                alt="얼굴 인식 실패"
+                layout="fill"
+                objectFit="contain"
+                className={`${styles.historyImage} ${styles.latest}`}
+              />
+            ) : (
+              <Image
+                src={item.resultImgUrl}
+                alt={item.alike}
+                layout="fill"
+                objectFit="cover"
+                className={`${styles.historyImage} ${styles.latest}`}
+                unoptimized={item.resultImgUrl.startsWith('http') ? false : true}
+              />
+            )}
+          </div>
           const isLatest = index === 0;
 
           if (isLatest) {
@@ -74,14 +108,25 @@ const HistoryList: React.FC<HistoryListProps> = ({ items }) => {
                   )}
                   <span className={styles.arrow}>&rarr;</span>
                   <div className={styles.imageWrapper}>
-                    <Image
-                      src={item.resultImgUrl}
-                      alt={item.alike}
-                      width={1200}
-                      height={1200}
-                      className={styles.historyImage}
-                      unoptimized={item.resultImgUrl.startsWith('http') ? false : true}
-                    />
+                    {isErrorResult(item.alike) ? (
+                      <Image
+                        src="/img/noface.svg"
+                        alt="얼굴 인식 실패"
+                        width={1200}
+                        height={1200}
+                        className={styles.historyImage}
+                        style={{ objectFit: 'contain' }}
+                      />
+                    ) : (
+                      <Image
+                        src={item.resultImgUrl}
+                        alt={item.alike}
+                        width={1200}
+                        height={1200}
+                        className={styles.historyImage}
+                        unoptimized={item.resultImgUrl.startsWith('http') ? false : true}
+                      />
+                    )}
                   </div>
                 </div>
                 <div className={styles.info}>
