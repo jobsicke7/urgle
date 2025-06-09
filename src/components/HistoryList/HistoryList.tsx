@@ -63,14 +63,26 @@ const HistoryList: React.FC<HistoryListProps> = ({ items }) => {
                 <div className={styles.latestImageRow}>
                   {item.imgUrl && (
                     <div className={styles.latestImageContainer}>
-                      <Image
-                        src={item.imgUrl}
-                        alt="촬영 사진"
-                        layout="fill"
-                        objectFit="cover"
-                        className={`${styles.historyImage} ${styles.latest}`}
-                      />
+                      {isErrorResult(item.alike) ? (
+                        <Image
+                          src="/img/noface.svg"
+                          alt="얼굴 인식 실패"
+                          layout="fill"
+                          objectFit="contain"
+                          className={`${styles.historyImage} ${styles.latest}`}
+                        />
+                      ) : (
+                        <Image
+                          src={item.resultImgUrl}
+                          alt={item.alike}
+                          layout="fill"
+                          objectFit="cover"
+                          className={`${styles.historyImage} ${styles.latest}`}
+                          unoptimized={item.resultImgUrl.startsWith('http') ? false : true}
+                        />
+                      )}
                     </div>
+
                   )}
                   <span className={`${styles.arrow} ${styles.latest}`}>&rarr;</span>
                   <div className={styles.latestImageContainer}>
