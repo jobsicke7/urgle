@@ -100,24 +100,24 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
           height: { ideal: 2160, max: 2160 },
           facingMode: 'user',
           frameRate: { ideal: 30, max: 60 },
-          aspectRatio: { ideal: 16/9 }
+          aspectRatio: { ideal: 16 / 9 }
         }
       };
 
       let stream: MediaStream;
-    
+
       try {
         stream = await navigator.mediaDevices.getUserMedia({
           video: {
-            width: { ideal: 3840, max: 3840 },
-            height: { ideal: 2160, max: 2160 },
+            width: { ideal: 2560, max: 2560 },
+            height: { ideal: 1440, max: 1440 },
             facingMode: 'user',
             frameRate: { ideal: 30 }
           }
         });
       } catch (fourKError) {
         console.warn(":", fourKError);
-        
+
         try {
           stream = await navigator.mediaDevices.getUserMedia({
             video: {
@@ -129,7 +129,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
           });
         } catch (hdError) {
           console.warn(":", hdError);
-          
+
           stream = await navigator.mediaDevices.getUserMedia({
             video: {
               width: { ideal: 1280, max: 1280 },
@@ -142,17 +142,17 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        
+
         videoRef.current.onloadedmetadata = () => {
           const video = videoRef.current!;
           console.log(`${video.videoWidth}x${video.videoHeight}`);
-          
+
           videoRef.current?.play().catch(err_play => {
             console.error("카메라 로딩 실패:", err_play);
             setError("카메라를 로딩할 수 없습니다.");
           });
         };
-        
+
         videoRef.current.oncanplay = () => {
           setIsCameraReady(true);
           setError(null);
@@ -172,10 +172,10 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
   const startFrameLoop = useCallback(() => {
     if (isFrameLoopRunningRef.current) return;
     isFrameLoopRunningRef.current = true;
-    
+
     const frameLoop = () => {
       if (!isFrameLoopRunningRef.current) return;
-      
+
       const now = Date.now();
       const frameInterval = 1000 / 10;
 
@@ -419,7 +419,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
           ref={videoRef}
           playsInline
           muted
-          style={{ 
+          style={{
             display: cameraMode === 'direct' ? 'block' : 'none',
             width: '100%',
             height: '100%',
