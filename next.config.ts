@@ -13,6 +13,9 @@ const nextConfig: NextConfig = {
     }
     return config;
   },
+  // Explicitly provide an (empty) Turbopack config so Next.js build on Vercel
+  // doesn't error when a custom webpack config is present.
+  turbopack: {},
   async rewrites() {
     return [
       {
