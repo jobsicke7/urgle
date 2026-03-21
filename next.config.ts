@@ -2,7 +2,7 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   images: {
-    domains: ["media.discordapp.net", "cdn.discordapp.com", "kgh1113.ddns.net"]
+    domains: ["media.discordapp.net", "cdn.discordapp.com", "kgh1113.ddns.net", "beta.jobsicke.com"]
   },
   webpack: (config, { isServer }) => {
     if (!isServer) {
@@ -20,11 +20,11 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/socket.io/:path*',
-        destination: 'http://kgh1113.ddns.net:80/socket.io/:path*',
+        destination: 'https://beta.jobsicke.com/socket.io/:path*',
       },
       {
         source: '/api/mood/socket.io/:path*',
-        destination: 'http://kgh1113.ddns.net:80/api/mood/socket.io/:path*',
+        destination: 'https://beta.jobsicke.com/api/mood/socket.io/:path*',
       }
     ];
   },
@@ -40,7 +40,7 @@ const nextConfig: NextConfig = {
               "connect-src * data: blob: ws: wss:",
               "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://static.cloudflareinsights.com",
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: blob: https://kgh1113.ddns.net http://kgh1113.ddns.net https://api.jobsickes.shop",
+              "img-src 'self' data: blob: https://kgh1113.ddns.net http://kgh1113.ddns.net https://api.jobsickes.shop https://beta.jobsicke.com",
               "font-src 'self'",
               "object-src 'none'",
               "base-uri 'self'",
