@@ -1,8 +1,9 @@
 export async function POST(request: Request) {
     try {
       const body = await request.json();
-      
-      const response = await fetch('http://kgh1113.ddns.net/api/look-alike', {
+
+        const target = process.env.LOOK_ALIKE_API_URL || 'https://beta.jobsicke.com';
+        const response = await fetch(`${target}/api/look-alike`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

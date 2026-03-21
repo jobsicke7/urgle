@@ -2,7 +2,8 @@ export async function POST(request: Request) {
     try {
       const formData = await request.formData();
       
-      const response = await fetch('http://kgh1113.ddns.net/api/look-alike/upload', {
+      const target = process.env.LOOK_ALIKE_API_URL || 'https://beta.jobsicke.com';
+      const response = await fetch(`${target}/api/look-alike/upload`, {
         method: 'POST',
         body: formData,
       });
