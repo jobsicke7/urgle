@@ -33,6 +33,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
   const isFrameLoopRunningRef = useRef<boolean>(false);
   const clickCountRef = useRef<number>(0);
   const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isSubmittingRef = useRef(false);
 
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -324,11 +325,17 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
   }, [isCameraReady, isSocketConnected, startFrameLoop, stopFrameLoop, cameraMode]);
 
   const handleTakePhoto = useCallback(async () => {
+    // Prevent duplicate submissions
+    if (isSubmittingRef.current) {
+      console.warn('handleTakePhoto: submission already in progress, ignoring duplicate call');
+      return;
+    }
+
     if (!videoRef.current || !canvasRef.current || !isCameraReady) {
       setError("카메라가 준비되지 않았거나 로딩에 실패했습니다.");
       return;
     }
-
+    isSubmittingRef.current = true;
     setIsLoading(true);
     setError(null);
 
@@ -398,6 +405,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
       setError(apiError.message);
     } finally {
       setIsLoading(false);
+      isSubmittingRef.current = false;
       if (cameraMode === 'socket' && isCameraReady && isSocketConnected && !isFrameLoopRunningRef.current) {
         startFrameLoop();
       }
