@@ -57,8 +57,13 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
     if (socketRef.current) return;
 
     socketRef.current = io('https://beta.jobsicke.com/api/mood', {
-      transports: ['websocket', 'polling'],
-      timeout: 10000,
+      transports: ['websocket'],
+      timeout: 8000,
+      reconnection: true,
+      reconnectionAttempts: 8,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      randomizationFactor: 0.2,
     });
 
     socketRef.current.on('connect', () => {
@@ -97,10 +102,10 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
     try {
       const constraints = {
         video: {
-          width: { ideal: 4096, max: 4096 },
-          height: { ideal: 2160, max: 2160 },
+          width: { ideal: 1280, max: 1280 },
+          height: { ideal: 720, max: 720 },
           facingMode: 'user',
-          frameRate: { ideal: 30, max: 60 },
+          frameRate: { ideal: 24, max: 30 },
           aspectRatio: { ideal: 16 / 9 }
         }
       };
@@ -108,24 +113,17 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
       let stream: MediaStream;
 
       try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            width: { ideal: 1920, max: 1920 },
-            height: { ideal: 1080, max: 1080 },
-            facingMode: 'user',
-            frameRate: { ideal: 30 }
-          }
-        });
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
       } catch (fourKError) {
         console.warn(":", fourKError);
 
         try {
           stream = await navigator.mediaDevices.getUserMedia({
             video: {
-              width: { ideal: 1920, max: 1920 },
-              height: { ideal: 1080, max: 1080 },
+              width: { ideal: 1280, max: 1280 },
+              height: { ideal: 720, max: 720 },
               facingMode: 'user',
-              frameRate: { ideal: 30 }
+              frameRate: { ideal: 24 }
             }
           });
         } catch (hdError) {
@@ -133,8 +131,8 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
 
           stream = await navigator.mediaDevices.getUserMedia({
             video: {
-              width: { ideal: 1280, max: 1280 },
-              height: { ideal: 720, max: 720 },
+              width: { ideal: 960, max: 960 },
+              height: { ideal: 540, max: 540 },
               facingMode: 'user'
             }
           });
@@ -178,7 +176,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
       if (!isFrameLoopRunningRef.current) return;
 
       const now = Date.now();
-      const frameInterval = 1000 / 10;
+  const frameInterval = 1000 / 6;
 
       if (!videoRef.current || videoRef.current.paused || videoRef.current.ended || !moodCanvasRef.current || !isSocketConnected || !socketRef.current?.connected) {
         animationFrameRef.current = requestAnimationFrame(frameLoop);
@@ -199,8 +197,11 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
         return;
       }
 
-      canvas.width = video.videoWidth / 2;
-      canvas.height = video.videoHeight / 2;
+  const maxW = 640;
+  const maxH = 360;
+  const scale = Math.min(maxW / video.videoWidth, maxH / video.videoHeight, 1);
+  canvas.width = Math.floor(video.videoWidth * scale);
+  canvas.height = Math.floor(video.videoHeight * scale);
       const context = canvas.getContext('2d');
 
       if (!context) {
@@ -258,7 +259,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
             setIsProcessingFrame(false);
           }
         }
-      }, 'image/jpeg', 0.5);
+  }, 'image/jpeg', 0.4);
 
       if (isFrameLoopRunningRef.current) {
         animationFrameRef.current = requestAnimationFrame(frameLoop);
