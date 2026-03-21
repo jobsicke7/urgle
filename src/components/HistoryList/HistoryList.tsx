@@ -34,28 +34,16 @@ const HistoryList: React.FC<HistoryListProps> = ({ items }) => {
             return errorStates.includes(alike);
           };
 
-          // 2. 최신 항목(isLatest = true)의 결과 이미지 부분 수정:
-          <div className={styles.latestImageContainer}>
-            {isErrorResult(item.alike) ? (
-              <Image
-                src="/img/noface.svg"
-                alt="얼굴 인식 실패"
-                layout="fill"
-                objectFit="contain"
-                className={`${styles.historyImage} ${styles.latest}`}
-              />
-            ) : (
-              <Image
-                src={item.resultImgUrl}
-                alt={item.alike}
-                layout="fill"
-                objectFit="cover"
-                className={`${styles.historyImage} ${styles.latest}`}
-                unoptimized={item.resultImgUrl.startsWith('http') ? false : true}
-              />
-            )}
-          </div>
           const isLatest = index === 0;
+
+          // normalize image URLs: if not absolute, prefix with NEXT_PUBLIC_API_BASE_URL
+          const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL ?? '';
+          const resolveUrl = (u?: string) => {
+            if (!u) return '';
+            if (/^https?:\/\//i.test(u)) return u;
+            if (u.startsWith('/')) return `${apiBase}${u}`;
+            return `${apiBase}/${u}`;
+          };
 
           if (isLatest) {
             return (
@@ -75,23 +63,23 @@ const HistoryList: React.FC<HistoryListProps> = ({ items }) => {
                   <span className={`${styles.arrow} ${styles.latest}`}>&rarr;</span>
                   <div className={styles.latestImageContainer}>
                     {isErrorResult(item.alike) ? (
-                      <Image
-                        src="/img/noface.svg"
-                        alt="얼굴 인식 실패"
-                        layout="fill"
-                        objectFit="contain"
-                        className={`${styles.historyImage} ${styles.latest}`}
-                      />
-                    ) : (
-                      <Image
-                        src={item.resultImgUrl}
-                        alt={item.alike}
-                        layout="fill"
-                        objectFit="cover"
-                        className={`${styles.historyImage} ${styles.latest}`}
-                        unoptimized={item.resultImgUrl.startsWith('http') ? false : true}
-                      />
-                    )}
+                        <Image
+                          src="/img/noface.svg"
+                          alt="얼굴 인식 실패"
+                          layout="fill"
+                          objectFit="contain"
+                          className={`${styles.historyImage} ${styles.latest}`}
+                        />
+                      ) : (
+                        <Image
+                          src={resolveUrl(item.resultImgUrl)}
+                          alt={item.alike}
+                          layout="fill"
+                          objectFit="cover"
+                          className={`${styles.historyImage} ${styles.latest}`}
+                          unoptimized={!/^https?:\/\//i.test(item.resultImgUrl ?? '')}
+                        />
+                      )}
                   </div>
 
                 </div>
