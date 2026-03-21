@@ -7,15 +7,7 @@ import { HistoryItem, LookAlikeResult, UploadResponse } from '@/types';
 import Image from 'next/image';
 import io, { Socket } from 'socket.io-client';
 
-const arrayBufferToBase64 = (buffer: ArrayBuffer) => {
-  let binary = '';
-  const bytes = new Uint8Array(buffer);
-  const len = bytes.byteLength;
-  for (let i = 0; i < len; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
-  return window.btoa(binary);
-};
+const FRAME_INTERVAL_MS = 1000 / 6;
 
 interface CameraViewProps {
   onNewHistoryItem: (item: HistoryItem) => void;
@@ -34,6 +26,8 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
   const clickCountRef = useRef<number>(0);
   const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isSubmittingRef = useRef(false);
+  const socketImageUrlRef = useRef<string | null>(null);
+  const isProcessingFrameRef = useRef(false);
 
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -51,6 +45,28 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
       clearTimeout(processingTimeoutRef.current);
       processingTimeoutRef.current = null;
     }
+  }, []);
+
+  const setProcessingState = useCallback((value: boolean) => {
+    isProcessingFrameRef.current = value;
+    setIsProcessingFrame(value);
+  }, []);
+
+  const setSocketImageFromBuffer = useCallback((buffer: ArrayBuffer) => {
+    const blob = new Blob([buffer], { type: 'image/jpeg' });
+    const nextUrl = URL.createObjectURL(blob);
+    if (socketImageUrlRef.current) {
+      URL.revokeObjectURL(socketImageUrlRef.current);
+    }
+    socketImageUrlRef.current = nextUrl;
+    setSocketImageSrc(nextUrl);
+  }, []);
+
+  const normalizeSocketBuffer = useCallback((data: ArrayBuffer | Uint8Array) => {
+    if (data instanceof ArrayBuffer) {
+      return data;
+    }
+    return new Uint8Array(data).buffer;
   }, []);
 
   const setupSocket = useCallback(() => {
@@ -76,7 +92,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
       setIsSocketConnected(false);
       setSocketImageSrc(null);
       clearProcessingTimeout();
-      setIsProcessingFrame(false);
+      setProcessingState(false);
     });
 
     socketRef.current.on('connect_error', (err) => {
@@ -84,14 +100,14 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
       setIsSocketConnected(false);
       setError('서버에 연결할 수 없음');
       clearProcessingTimeout();
-      setIsProcessingFrame(false);
+      setProcessingState(false);
     });
 
     socketRef.current.on('mood_error', (err) => {
       clearProcessingTimeout();
-      setIsProcessingFrame(false);
+      setProcessingState(false);
     });
-  }, [clearProcessingTimeout]);
+  }, [clearProcessingTimeout, setProcessingState]);
 
   const setupCamera = useCallback(async () => {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -175,15 +191,14 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
     const frameLoop = () => {
       if (!isFrameLoopRunningRef.current) return;
 
-      const now = Date.now();
-  const frameInterval = 1000 / 6;
+    const now = Date.now();
 
       if (!videoRef.current || videoRef.current.paused || videoRef.current.ended || !moodCanvasRef.current || !isSocketConnected || !socketRef.current?.connected) {
         animationFrameRef.current = requestAnimationFrame(frameLoop);
         return;
       }
 
-      if (now - lastFrameTimeRef.current < frameInterval) {
+  if (now - lastFrameTimeRef.current < FRAME_INTERVAL_MS) {
         animationFrameRef.current = requestAnimationFrame(frameLoop);
         return;
       }
@@ -197,11 +212,11 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
         return;
       }
 
-  const maxW = 640;
-  const maxH = 360;
-  const scale = Math.min(maxW / video.videoWidth, maxH / video.videoHeight, 1);
-  canvas.width = Math.floor(video.videoWidth * scale);
-  canvas.height = Math.floor(video.videoHeight * scale);
+    const maxW = 640;
+    const maxH = 360;
+    const scale = Math.min(maxW / video.videoWidth, maxH / video.videoHeight, 1);
+    canvas.width = Math.floor(video.videoWidth * scale);
+    canvas.height = Math.floor(video.videoHeight * scale);
       const context = canvas.getContext('2d');
 
       if (!context) {
@@ -212,12 +227,12 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
       canvas.toBlob(async (blob) => {
-        if (blob && !isProcessingFrame && socketRef.current?.connected) {
-          setIsProcessingFrame(true);
+        if (blob && !isProcessingFrameRef.current && socketRef.current?.connected) {
+          setProcessingState(true);
           clearProcessingTimeout();
           processingTimeoutRef.current = setTimeout(() => {
-            if (isProcessingFrame) {
-              setIsProcessingFrame(false);
+            if (isProcessingFrameRef.current) {
+              setProcessingState(false);
             }
           }, 3000);
 
@@ -232,13 +247,12 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
                 order: orderHex,
                 data: arrayBuffer,
               },
-              (responseData: { order: string, data: ArrayBuffer | null }) => {
+              (responseData: { order: string, data: ArrayBuffer | null | Uint8Array }) => {
                 clearProcessingTimeout();
-                if (responseData.data && responseData.data instanceof ArrayBuffer) {
+                if (responseData.data) {
                   try {
-                    const base64Image = arrayBufferToBase64(responseData.data);
-                    const imageUrl = `data:image/jpeg;base64,${base64Image}`;
-                    setSocketImageSrc(imageUrl);
+                    const buffer = normalizeSocketBuffer(responseData.data);
+                    setSocketImageFromBuffer(buffer);
                   } catch (e) {
                     console.error(e);
                   }
@@ -251,12 +265,12 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
                     console.warn(responseData);
                   }
                 }
-                setIsProcessingFrame(false);
+                setProcessingState(false);
               }
             );
           } catch (error_emit) {
             clearProcessingTimeout();
-            setIsProcessingFrame(false);
+            setProcessingState(false);
           }
         }
   }, 'image/jpeg', 0.4);
@@ -267,7 +281,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
     };
 
     animationFrameRef.current = requestAnimationFrame(frameLoop);
-  }, [isProcessingFrame, isSocketConnected, clearProcessingTimeout]);
+  }, [isSocketConnected, clearProcessingTimeout, setSocketImageFromBuffer, normalizeSocketBuffer, setProcessingState]);
 
   const stopFrameLoop = useCallback(() => {
     isFrameLoopRunningRef.current = false;
@@ -306,6 +320,10 @@ const CameraView: React.FC<CameraViewProps> = ({ onNewHistoryItem }) => {
       if (socketRef.current) {
         socketRef.current.disconnect();
         socketRef.current = null;
+      }
+      if (socketImageUrlRef.current) {
+        URL.revokeObjectURL(socketImageUrlRef.current);
+        socketImageUrlRef.current = null;
       }
       if (clickTimeoutRef.current) {
         clearTimeout(clickTimeoutRef.current);
